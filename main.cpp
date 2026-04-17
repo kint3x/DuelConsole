@@ -1,6 +1,8 @@
 #include <platform/pc/SDLPlatform.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
 
+#include <games/MainMenu/resources/resources.hpp>
+
 int main() {
     SDLPlatform platform;
 
@@ -8,6 +10,10 @@ int main() {
 
     bool running = true;
 
+
+
+    engine.clean();
+    engine.drawSprite(Menu_BCG,0,0);
     while (running) {
         Input input = platform.pollInput();
 
@@ -15,7 +21,7 @@ int main() {
             running = false;
         }
 
-        engine.clean();
+
         engine.render();
     }
 
