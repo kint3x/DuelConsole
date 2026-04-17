@@ -1,13 +1,20 @@
 import os
 
-ROOT_DIR = "./ICQEngine/resources"
+ROOT_DIR = "."
 
+TARGET_FOLDER_NAME = "resources"
 DELETE_EXTENSIONS = (".cpp", ".hpp")
 
-def clean_resources():
+
+def clean_project():
     removed = 0
 
     for root, dirs, files in os.walk(ROOT_DIR):
+
+        # only act inside "resources" folders
+        if os.path.basename(root) != TARGET_FOLDER_NAME:
+            continue
+
         for file in files:
             if file.lower().endswith(DELETE_EXTENSIONS):
                 path = os.path.join(root, file)
@@ -23,4 +30,4 @@ def clean_resources():
 
 
 if __name__ == "__main__":
-    clean_resources()
+    clean_project()
