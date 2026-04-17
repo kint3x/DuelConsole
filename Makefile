@@ -14,6 +14,10 @@ TARGET := bin/game
 
 all: $(TARGET)
 
+build_resources:
+	python3 build_fonts.py
+	python3 build_resources.py
+
 # Link
 $(TARGET): $(OBJ)
 	@mkdir -p bin
@@ -25,7 +29,6 @@ bin/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	python3 clean.py
 	rm -rf bin/*
 
 run: $(TARGET)

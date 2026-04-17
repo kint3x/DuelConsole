@@ -2,7 +2,7 @@ import os
 from PIL import Image, ImageFont, ImageDraw
 
 FONT_DIR = "./fonts"
-OUTPUT_DIR = "ICQEngine/resources/fonts"
+OUTPUT_DIR = "generated"
 
 FONT_SIZES = [8, 12, 18, 24]
 
@@ -11,8 +11,11 @@ ASCII_END = 126
 
 CHARS = [chr(i) for i in range(ASCII_START, ASCII_END + 1)]
 
-FONTS_H_FILE = "ICQEngine/resources/fonts/fonts.hpp"
-FONTS_CPP_FILE = "ICQEngine/resources/fonts/fonts.cpp"
+gen_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated")
+os.makedirs(gen_dir, exist_ok=True)
+
+FONTS_H_FILE = os.path.join(gen_dir,"fonts.hpp")
+FONTS_CPP_FILE = os.path.join(gen_dir,"fonts.cpp")
 
 FONT_ENUM_NAMES = []
 
@@ -105,7 +108,7 @@ def main():
         f.write(f"#endif //__FONTS_HPP\n")
 
     with open(FONTS_CPP_FILE, "w") as f:
-        f.write("#include <ICQEngine/resources/fonts/fonts.hpp>\n\n")
+        f.write("#include <generated/fonts.hpp>\n\n")
         f.write("fontmap_t* FONT_REGISTRY[FONT_COUNT][FONT_SIZE_COUNT] = {\n")
         
         for name in FONT_ENUM_NAMES:

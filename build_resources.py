@@ -9,7 +9,8 @@ OUTPUT_HEADER = "resources.hpp"
 
 SUPPORTED_EXT = (".bmp", ".png", ".jpg", ".jpeg", ".webp")
 
-
+gen_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated")
+os.makedirs(gen_dir, exist_ok=True)
 # -----------------------------
 # RGB conversion
 # -----------------------------
@@ -90,7 +91,8 @@ def process_resources(folder):
             name = sanitize(os.path.splitext(file)[0])
 
             c_file = f"{name}.cpp"
-            c_path = os.path.join(folder, c_file)
+
+            c_path = os.path.join(gen_dir, c_file)
 
             print(f"Converting {file} -> {c_file}")
 
@@ -100,7 +102,7 @@ def process_resources(folder):
             header.append(f"extern framebuffer_t {name};\n")
 
     # write header
-    header_path = os.path.join(folder, OUTPUT_HEADER)
+    header_path = os.path.join(gen_dir, OUTPUT_HEADER)
 
     with open(header_path, "w") as f:
         f.write("#pragma once\n\n")

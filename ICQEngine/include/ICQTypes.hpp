@@ -5,6 +5,21 @@
 
 #define TRANSPARENT_COLOR 0x0001
 
+enum RECT_FILL_MODE{
+    RECT_INSIDE_MODE,
+    RECT_OUTLINE_MODE
+};
+
+struct position_t
+{
+    uint16_t x;
+    uint16_t y;
+};
+
+struct Rect {
+    position_t pos;
+    uint16_t w, h;
+};
 
 struct framebuffer_t
 {
