@@ -25,6 +25,7 @@ bin/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
+	python3 clean.py
 	rm -rf bin/*
 
 run: $(TARGET)

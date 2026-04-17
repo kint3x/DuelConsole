@@ -9,8 +9,6 @@ OUTPUT_HEADER = "resources.hpp"
 
 SUPPORTED_EXT = (".bmp", ".png", ".jpg", ".jpeg", ".webp")
 
-TRANSPARENT_COLOR = 0xF81F  # magenta fallback
-
 
 # -----------------------------
 # RGB conversion
@@ -43,12 +41,11 @@ def convert_image(img_path, out_c_path, var_name):
     pixels = list(img.getdata())
 
     with open(out_c_path, "w") as f:
-        # REQUIRED INCLUDE
+        # engine include (defines TRANSPARENT_COLOR)
         f.write("#include <ICQEngine/include/ICQTypes.hpp>\n\n")
 
         f.write(f"static uint16_t {var_name}_pixels[] = {{\n")
 
-        # pixel data
         for y in range(height):
             row = []
             for x in range(width):
@@ -56,21 +53,22 @@ def convert_image(img_path, out_c_path, var_name):
 
                 if has_alpha:
                     r, g, b, a = pixels[i]
+
                     if a < 128:
-                        rgb = TRANSPARENT_COLOR
+                        # USE ENGINE MACRO (NOT PYTHON CONSTANT)
+                        rgb = "TRANSPARENT_COLOR"
                     else:
-                        rgb = rgb888_to_rgb565(r, g, b)
+                        rgb = f"0x{rgb888_to_rgb565(r, g, b):04x}"
                 else:
                     r, g, b = pixels[i]
-                    rgb = rgb888_to_rgb565(r, g, b)
+                    rgb = f"0x{rgb888_to_rgb565(r, g, b):04x}"
 
-                row.append(f"0x{rgb:04x}")
+                row.append(str(rgb))
 
             f.write("    " + ",".join(row) + ",\n")
 
         f.write("};\n\n")
 
-        # framebuffer struct instance
         f.write(f"framebuffer_t {var_name} = {{\n")
         f.write(f"    {width},\n")
         f.write(f"    {height},\n")
