@@ -4,7 +4,7 @@ from PIL import Image, ImageFont, ImageDraw
 FONT_DIR = "./fonts"
 OUTPUT_DIR = "generated"
 
-FONT_SIZES = [8, 12, 18, 24]
+FONT_SIZES = [12, 18, 24, 32]
 
 ASCII_START = 33
 ASCII_END = 126

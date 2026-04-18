@@ -61,7 +61,7 @@ void ICQEngine::drawSprite(framebuffer_t data, uint16_t x, uint16_t y)
 /*
 *   Draws text with chosen color,size,font
 */
-void ICQEngine::drawText(char *text, FONT_SIZE SIZE, FONT_TYPE TYPE, uint16_t color, position_t pos, int8_t spacing)
+void ICQEngine::drawText(const char *text, FONT_SIZE SIZE, FONT_TYPE TYPE, uint16_t color, position_t pos, int8_t spacing)
 {
     if (!text) return;
 

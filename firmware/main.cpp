@@ -1,5 +1,6 @@
 #include <platform/pc/SDLPlatform.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
+#include <games/MainMenu/MainMenu.hpp>
 
 #include <generated/resources.hpp>
 #include <iostream>
@@ -9,21 +10,21 @@ int main() {
 
     ICQEngine engine(480, 320, &platform);
 
+    IGame* game[] = { new MainMenu(&engine) };
+
+    int currentGame = 0;
+    game[currentGame]->init();
+
     bool running = true;
 
-    char text[] = "Test Krasneho textu";
 
-    engine.clean();
-    engine.drawSprite(Menu_BCG,0,0);
-    engine.drawText(text,FONT_SIZE_24,FONT_SOURCECODEPRO,0x0000,{200,15},-10);
-    engine.drawRect({{30,30},50,50},0xFFFF,RECT_OUTLINE_MODE,4);
     while (running) {
         Input input = platform.pollInput();
 
         if (input.quit) {
             running = false;
         }
-
+        game[currentGame]->update(&input, 0.016f); 
 
         engine.render();
     }

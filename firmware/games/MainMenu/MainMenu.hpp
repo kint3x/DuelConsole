@@ -2,6 +2,7 @@
 
 #include <games/IGame.hpp>
 #include <string>
+#include <stack>
 
 enum class MenuItemType {
     ACTION,        // triggers something (Start Game)
@@ -21,7 +22,7 @@ struct MenuItem {
 
     union {
         void (*action)();     // ACTION
-        Menu* submenu;        // SUBMENU
+        MenuItem* submenu;     // SUBMENU
         bool* toggleValue;    // TOGGLE
         int* intValue;        // VALUE_INT
     };
@@ -31,17 +32,20 @@ struct MenuItem {
 class MainMenu : public IGame
 {
 public:
-    MainMenu(Engine *engine) : IGame(engine) {};
+    MainMenu(ICQEngine* engine);
     ~MainMenu() override;
 
     // IGame interface
     void update(const Input *input, float deltaTime) override;
-
+    void init() override;
     bool isRunning() const override;
     void setRunning(bool running) override;
 
 private:
     void moveSelection(int direction);
     void selectItem();
+    void drawMenu(const MenuItem *items, int count, int selectedIndex);
+    void drawMenuItem(const MenuItem &item, bool selected, position_t position);
 
+    std::stack<MenuItem*> menuStack;
 };
