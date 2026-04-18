@@ -5,6 +5,7 @@
 #include <generated/resources.hpp>
 #include <iostream>
 
+
 int main() {
     SDLPlatform platform;
 
@@ -17,14 +18,15 @@ int main() {
 
     bool running = true;
 
-
+    
     while (running) {
         Input input = platform.pollInput();
 
         if (input.quit) {
             running = false;
         }
-        game[currentGame]->update(&input, 0.016f); 
+
+        game[currentGame]->update(&input, platform.time()); 
 
         engine.render();
     }

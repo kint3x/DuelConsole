@@ -1,4 +1,5 @@
 #include <platform/pc/SDLPlatform.hpp>
+#include <chrono>
 
 bool SDLPlatform::init(int w, int h) {
     width = w;
@@ -20,6 +21,12 @@ bool SDLPlatform::init(int w, int h) {
     );
 
     return true;
+}
+
+uint64_t SDLPlatform::time() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()
+    ).count();
 }
 
 void SDLPlatform::present(const uint16_t* fb) {
@@ -50,9 +57,4 @@ Input SDLPlatform::pollInput() {
     in.b     = keys[SDL_SCANCODE_X];
 
     return in;
-}
-
-
-float SDLPlatform::time() {
-    return SDL_GetTicks() / 1000.0f;
 }

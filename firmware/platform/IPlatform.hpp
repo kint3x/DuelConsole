@@ -21,5 +21,5 @@ public:
 
     virtual void present(const uint16_t* framebuffer) = 0;
 
-    virtual float time() = 0;
+    virtual uint64_t time() = 0;
 };

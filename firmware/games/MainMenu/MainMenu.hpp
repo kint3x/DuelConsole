@@ -16,18 +16,30 @@ enum class MenuItemType {
     SEPARATOR,     // visual only (no interaction)
 };
 
+struct Menu;
+
 struct MenuItem {
     std::string text;
     MenuItemType type;
 
     union {
         void (*action)();     // ACTION
-        MenuItem* submenu;     // SUBMENU
+        Menu* submenu;       // SUBMENU
         bool* toggleValue;    // TOGGLE
         int* intValue;        // VALUE_INT
     };
 };
 
+struct Menu{
+    std::string title;
+    MenuItem* items;
+    int itemCount;
+    int perPage = 5;
+    uint16_t selectedIndex = 0;
+    position_t start_position;
+    FONT_SIZE fontSize = FONT_SIZE_32;
+    FONT_TYPE fontType = FONT_SOURCECODEPRO;
+};
 
 class MainMenu : public IGame
 {
@@ -36,7 +48,7 @@ public:
     ~MainMenu() override;
 
     // IGame interface
-    void update(const Input *input, float deltaTime) override;
+    void update(const Input *input, uint64_t globtime) override;
     void init() override;
     bool isRunning() const override;
     void setRunning(bool running) override;
@@ -44,8 +56,14 @@ public:
 private:
     void moveSelection(int direction);
     void selectItem();
-    void drawMenu(const MenuItem *items, int count, int selectedIndex);
-    void drawMenuItem(const MenuItem &item, bool selected, position_t position);
+    void drawMenu(Menu *menu);
+    void drawMenuItem(MenuItem *item, bool selected, position_t *position);
 
-    std::stack<MenuItem*> menuStack;
+
+    uint64_t timeoutWaitUntil = 0;
+    std::stack<Menu *> menuStack;
+
 };
+
+
+extern Menu mainMenu;

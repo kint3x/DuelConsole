@@ -109,7 +109,7 @@ void ICQEngine::drawText(const char *text, FONT_SIZE SIZE, FONT_TYPE TYPE, uint1
     }
 }
 
-void ICQEngine::drawRect(Rect r, uint8_t color, RECT_FILL_MODE mode, uint8_t thickness)
+void ICQEngine::drawRect(Rect r, uint16_t color, RECT_FILL_MODE mode, uint8_t thickness)
 {
     uint16_t fb_w = curr_frame.width;
     uint16_t fb_h = curr_frame.height;

@@ -15,5 +15,5 @@ public:
     bool init(int w, int h) override;
     Input pollInput() override;
     void present(const uint16_t* framebuffer) override;
-    float time() override;
+    uint64_t time() override;
 };

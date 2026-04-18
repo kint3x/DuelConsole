@@ -1,4 +1,5 @@
 import os
+from tokenize import String
 from PIL import Image, ImageFont, ImageDraw
 
 FONT_DIR = "./fonts"
@@ -81,6 +82,7 @@ def generate(ttf_path):
 
 def main():
     global FONT_ENUM_NAMES
+
     with open(FONTS_H_FILE, "w") as f:
         f.write(f"#ifndef __FONTS_HPP\n")
         f.write(f"#define __FONTS_HPP\n")
@@ -105,18 +107,28 @@ def main():
         f.write("};\n")
 
         f.write("\nextern fontmap_t* FONT_REGISTRY[FONT_COUNT][FONT_SIZE_COUNT];\n\n")
-        f.write(f"#endif //__FONTS_HPP\n")
+
+        f.write("\nextern uint16_t font_size_to_px[FONT_SIZE_COUNT];")
+
+        f.write(f"\n\n#endif //__FONTS_HPP\n")
 
     with open(FONTS_CPP_FILE, "w") as f:
         f.write("#include <generated/fonts.hpp>\n\n")
         f.write("fontmap_t* FONT_REGISTRY[FONT_COUNT][FONT_SIZE_COUNT] = {\n")
-        
+
         for name in FONT_ENUM_NAMES:
             f.write("\t{ //")
             f.write(f"{name}\n")
             for size in FONT_SIZES:
                 f.write(f"\t\t&font_{name}_{size},\n")
             f.write("\t},\n")
+        f.write("};\n")
+
+        f.write("uint16_t font_size_to_px[FONT_SIZE_COUNT] = { ")
+        for size in FONT_SIZES:
+            f.write(f"{size}")
+            if size != FONT_SIZES[-1]:
+                f.write(", ")
         f.write("};\n")
 
 if __name__ == "__main__":
