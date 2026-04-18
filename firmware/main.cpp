@@ -2,6 +2,7 @@
 #include <ICQEngine/include/ICQEngine.hpp>
 
 #include <generated/resources.hpp>
+#include <iostream>
 
 int main() {
     SDLPlatform platform;
