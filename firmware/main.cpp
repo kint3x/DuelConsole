@@ -11,10 +11,11 @@ int main() {
 
     ICQEngine engine(480, 320, &platform);
 
-    IGame* game[] = { new MainMenu(&engine) };
+    Settings settings;
 
-    int currentGame = 0;
-    game[currentGame]->init();
+    IGame* game = new MainMenu(&engine);
+
+    game->init();
 
     bool running = true;
 
@@ -26,7 +27,7 @@ int main() {
             running = false;
         }
 
-        game[currentGame]->update(&input, platform.time()); 
+        game->update(&input, platform.time()); 
 
         engine.render();
     }

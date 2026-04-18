@@ -3,19 +3,19 @@
 #include <generated/fonts.hpp>
 
 MenuItem mainMenuItems[] = {
-    {"Games", MenuItemType::ACTION, .action = []() {
+    {"Create Game", MenuItemType::ACTION, .action = []() {
+        // Start game logic
+    }},
+    {"Join Game", MenuItemType::ACTION, .action = []() {
         // Start game logic
     }},
     {"Settings", MenuItemType::SUBMENU, .submenu = nullptr}, // Placeholder for submenu
-    {"Exit", MenuItemType::ACTION, .action = []() {
-        // Exit game logic
-    }}
 };
 
 Menu mainMenu = {
         .title = "Main Menu",
         .items = mainMenuItems,
-        .itemCount = 3,
+        .itemCount = sizeof(mainMenuItems) / sizeof(MenuItem),
         .perPage = 5,
         .selectedIndex = 0,
         .start_position = {120, 100},

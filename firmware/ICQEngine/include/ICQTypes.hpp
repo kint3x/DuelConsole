@@ -34,5 +34,15 @@ struct fontmap_t
     uint8_t *pixels;
 };
 
+struct Settings {
+    uint8_t game_selected = 0;
+};
+
+enum class GameRequest {
+    NONE,
+    MAIN_MENU,
+    START_GAME,
+    EXIT
+};
 
 #endif //ICQ_TYPES_HPP

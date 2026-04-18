@@ -16,10 +16,6 @@ MainMenu::MainMenu(ICQEngine *engine) : IGame(engine) {
 void MainMenu::init() {
     m_engine->drawSprite(Menu_BCG,0,0);
         
-
-    
-
-    
     menuStack.push(&mainMenu);
 
     drawMenu(menuStack.top());
@@ -88,7 +84,7 @@ void MainMenu::moveSelection(int direction) {
     Rect r = {
         .pos = {menuStack.top()->start_position.x, 
             menuStack.top()->start_position.y + menuStack.top()->selectedIndex * font_size_to_px[menuStack.top()->fontSize]},
-        .w = 200, // Assuming full width for highlight
+        .w = 250, // Assuming full width for highlight
         .h = font_size_to_px[menuStack.top()->fontSize]
     };
 

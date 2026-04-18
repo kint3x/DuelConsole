@@ -29,6 +29,7 @@ bin/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
+	rm -rf generated/
 	rm -rf bin/*
 
 run: $(TARGET)
