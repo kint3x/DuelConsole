@@ -53,8 +53,7 @@ Input SDLPlatform::pollInput() {
     in.down  = keys[SDL_SCANCODE_DOWN];
     in.left  = keys[SDL_SCANCODE_LEFT];
     in.right = keys[SDL_SCANCODE_RIGHT];
-    in.a     = keys[SDL_SCANCODE_Z];
-    in.b     = keys[SDL_SCANCODE_X];
+    in.x     = keys[SDL_SCANCODE_X];
 
     return in;
 }

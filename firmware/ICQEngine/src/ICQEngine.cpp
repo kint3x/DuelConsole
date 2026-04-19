@@ -29,9 +29,9 @@ void ICQEngine::render()
 /*
 *   Draws input sprite on origin of left top origin x,y
 */
-void ICQEngine::drawSprite(framebuffer_t data, uint16_t x, uint16_t y)
+void ICQEngine::drawSprite(framebuffer_t *data, uint16_t x, uint16_t y)
 {
-    for (unsigned sy = 0; sy < data.height; sy++)
+    for (unsigned sy = 0; sy < data->height; sy++)
     {
         unsigned dy = y + sy;
 
@@ -40,18 +40,61 @@ void ICQEngine::drawSprite(framebuffer_t data, uint16_t x, uint16_t y)
 
         unsigned row_offset = dy * curr_frame.width;
 
-        for (unsigned sx = 0; sx < data.width; sx++)
+        for (unsigned sx = 0; sx < data->width; sx++)
         {
             unsigned dx = x + sx;
 
             if (dx >= curr_frame.width)
                 break;
 
-            uint16_t pixel = data.pixels[sy * data.width + sx];
+            uint16_t pixel = data->pixels[sy * data->width + sx];
 
             if (pixel != TRANSPARENT_COLOR)
             {
                 curr_frame.pixels[row_offset + dx] = pixel;
+            }
+        }
+    }
+}
+
+
+void ICQEngine::drawSpriteClipped(framebuffer_t *data,
+                                 uint16_t x, uint16_t y,
+                                 const Rect &clip)
+{
+    // sprite bounds in screen space
+    int spriteRight  = x + data->width;
+    int spriteBottom = y + data->height;
+
+    // clip bounds
+    int clipRight  = clip.pos.x + clip.w;
+    int clipBottom = clip.pos.y + clip.h;
+
+    // compute intersection
+    int startX = (x > clip.pos.x) ? x : clip.pos.x;
+    int startY = (y > clip.pos.y) ? y : clip.pos.y;
+
+    int endX = (spriteRight < clipRight) ? spriteRight : clipRight;
+    int endY = (spriteBottom < clipBottom) ? spriteBottom : clipBottom;
+
+    // nothing visible
+    if (startX >= endX || startY >= endY)
+        return;
+
+    for (int sy = startY; sy < endY; ++sy)
+    {
+        int srcY = sy - y;
+        int dstRow = sy * curr_frame.width;
+
+        for (int sx = startX; sx < endX; ++sx)
+        {
+            int srcX = sx - x;
+
+            uint16_t pixel = data->pixels[srcY * data->width + srcX];
+
+            if (pixel != TRANSPARENT_COLOR)
+            {
+                curr_frame.pixels[dstRow + sx] = pixel;
             }
         }
     }

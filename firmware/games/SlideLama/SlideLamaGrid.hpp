@@ -1,0 +1,65 @@
+#pragma once
+#include <ICQEngine/include/ICQTypes.hpp>
+
+#define SLIDELAMA_GRIDSIZE 5
+
+enum class SlideLamaBlockType {
+    EMPTY,
+    BELL,
+    BANANA,
+    PLUM,
+    PEAR,
+    CHERRY,
+    BAR,
+    SEVEN
+};
+
+enum class SlideBlockSlotSide {
+    LEFT,
+    TOP,
+    RIGHT
+};
+
+struct SlideBlockPosition{
+   SlideBlockSlotSide side;
+   SlideLamaBlockType type;
+   uint8_t index; // 0-4 for left and right, 0-4 for top 
+};
+
+enum class ResolveDirection {
+    HORIZONTAL,
+    VERTICAL
+};
+ 
+struct resolvedSet {
+    position_t tilePos;
+    uint8_t count;
+    SlideLamaBlockType type;
+    ResolveDirection direction;
+};
+
+
+
+class SlideLamaGrid {
+public:
+    SlideLamaGrid();
+
+    SlideLamaBlockType cells[SLIDELAMA_GRIDSIZE * SLIDELAMA_GRIDSIZE];  // or enum Tile
+
+    SlideLamaBlockType* at(position_t pos);
+
+    void putExact(position_t pos, SlideLamaBlockType type);
+
+    void slideFromRight(SlideLamaBlockType block, int row);
+    void slideFromLeft(SlideLamaBlockType block, int row);
+    void slideFromTop(SlideLamaBlockType block, int column);
+
+    void slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot);
+
+    bool findSetToResolve(resolvedSet &set);
+
+    void resolveSet(const resolvedSet &set);
+
+    void resolveGravity();
+    uint16_t resolveMatches();
+};

@@ -1,6 +1,7 @@
 #include <platform/pc/SDLPlatform.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
 #include <games/MainMenu/MainMenu.hpp>
+#include <games/SlideLama/SlideLama.hpp>
 
 #include <generated/resources.hpp>
 #include <iostream>
@@ -13,7 +14,7 @@ int main() {
 
     Settings settings;
 
-    IGame* game = new MainMenu(&engine);
+    IGame* game = new SlideLama(&engine);
 
     game->init();
 

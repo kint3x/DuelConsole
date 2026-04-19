@@ -3,7 +3,6 @@
 #include <generated/fonts.hpp>
 
 #include <iostream>
-#include <time.h>
 
 MainMenu::~MainMenu() = default;
 
@@ -14,7 +13,7 @@ MainMenu::MainMenu(ICQEngine *engine) : IGame(engine) {
 }
 
 void MainMenu::init() {
-    m_engine->drawSprite(Menu_BCG,0,0);
+    m_engine->drawSprite(&Menu_BCG,0,0);
         
     menuStack.push(&mainMenu);
 
@@ -31,27 +30,20 @@ void MainMenu::update(const Input *input, uint64_t globtime) {
         std::cout << "Input timeout, ignoring input. Time left: " << (timeoutWaitUntil - globtime) << " ms" << std::endl;
         return; // Still in timeout, ignore input
     }
+    if(input->up || input->down){
+        timeoutWaitUntil = globtime + 200; // 200 ms timeout
+    }
     //handle inputs
     if (input->up) {
         moveSelection(-1);
-        timeoutWaitUntil = globtime + 200; // 200 ms timeout
     }
     else if (input->down) {
         moveSelection(1);
-        timeoutWaitUntil = globtime + 200; // 200 ms timeout
     }
     
 }
 
 
-
-bool MainMenu::isRunning() const {
-    return IsRunning;
-}
-
-void MainMenu::setRunning(bool running) {
-    IsRunning = running;
-}   
 
 void MainMenu::drawMenu(Menu *menu) {
     // Draw menu items

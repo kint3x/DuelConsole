@@ -50,8 +50,6 @@ public:
     // IGame interface
     void update(const Input *input, uint64_t globtime) override;
     void init() override;
-    bool isRunning() const override;
-    void setRunning(bool running) override;
 
 private:
     void moveSelection(int direction);

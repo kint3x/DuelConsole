@@ -6,7 +6,7 @@ struct Input {
     bool down = false;
     bool left = false;
     bool right = false;
-    bool a = false;
+    bool x = false;
     bool b = false;
     bool quit = false;
 };

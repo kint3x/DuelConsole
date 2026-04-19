@@ -104,10 +104,7 @@ def process_resources(folder):
     # write header
     header_path = os.path.join(gen_dir, OUTPUT_HEADER)
 
-    with open(header_path, "w") as f:
-        f.write("#pragma once\n\n")
-        f.write("#include <ICQEngine/include/ICQTypes.hpp>\n\n")
-
+    with open(header_path, "a") as f:
         for line in header:
             f.write(line)
 
@@ -120,6 +117,11 @@ def process_resources(folder):
 # scan project
 # -----------------------------
 def main():
+    header_path = os.path.join(gen_dir, OUTPUT_HEADER)
+    with open(header_path, "w") as f:
+        f.write("#pragma once\n\n")
+        f.write("#include <ICQEngine/include/ICQTypes.hpp>\n\n")
+
     for root, dirs, files in os.walk(ROOT_DIR):
         for d in dirs:
             if d.lower() == "resources":

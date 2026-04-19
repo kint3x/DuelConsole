@@ -14,11 +14,11 @@ public:
     virtual void init() {};
     virtual void update(const Input *input, uint64_t globtime) = 0;
     
-    // State management
+    /* State management
     virtual bool isRunning() const = 0;
-    virtual void setRunning(bool running) = 0;
+    virtual void setRunning(bool running) = 0;*/
 
 protected:
     ICQEngine* m_engine;
-    bool IsRunning;
+    
 };
