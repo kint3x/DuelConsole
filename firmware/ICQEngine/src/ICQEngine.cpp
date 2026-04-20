@@ -1,5 +1,7 @@
 #include <ICQEngine/include/ICQEngine.hpp>
 #include <iostream>
+#include <variant>
+
 ICQEngine::ICQEngine(uint16_t width, uint16_t height,IPlatform *p) : platform(p)
 {
     curr_frame.width = width;
@@ -251,93 +253,86 @@ void ICQEngine::drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, posit
 }
 
 void ICQEngine::drawAnimationStep(animation_t *animation, uint32_t timeDelta)
-{   
-    if (animation == nullptr || animation->finished){
+{
+    if (!animation || animation->finished)
         return;
-    }
-    if (animation->type == AnimationType::SPRITE_ANIMATION){
 
-        SpriteAnimationData &sprite = animation->data.spriteAnimation;
-
-        if (!sprite.AnimationFrames || !sprite.frameDurations || sprite.Framecnt == 0)
-        {
+    // =========================
+    // SPRITE ANIMATION
+    // =========================
+    if (auto *sprite = std::get_if<SpriteAnimationData>(&animation->data))
+    {
+        if (!sprite->AnimationFrames || !sprite->frameDurations || sprite->Framecnt == 0)
             return;
-        }
-        
-        // Accumulate time
+
         animation->accumulatedTime += timeDelta;
 
-        // Keep advancing frames while we have enough accumulated time
-        while (animation->accumulatedTime >= sprite.frameDurations[animation->currentFrame] && !animation->finished)
+        while (animation->accumulatedTime >= sprite->frameDurations[animation->currentFrame])
         {
-            // Subtract current frame duration
-            animation->accumulatedTime -= sprite.frameDurations[animation->currentFrame];
-            
-            // Advance to next frame
+            animation->accumulatedTime -= sprite->frameDurations[animation->currentFrame];
             animation->currentFrame++;
-            
-            // Check if animation is complete
-            if (animation->currentFrame >= sprite.Framecnt)
+
+            if (animation->currentFrame >= sprite->Framecnt)
             {
-                animation->currentFrame = sprite.Framecnt - 1;
+                animation->currentFrame = sprite->Framecnt - 1;
                 animation->finished = true;
                 break;
             }
         }
 
-        // Only draw if animation is not finished, or draw last frame
-        if (!animation->finished || animation->currentFrame < sprite.Framecnt)
+        if (!animation->finished || animation->currentFrame < sprite->Framecnt)
         {
-            // Restore background if present
-            if (sprite.BackgroundData)
+            if (sprite->BackgroundData)
             {
                 drawSpriteSubRect(
-                    sprite.BackgroundData,
-                    sprite.BackgroundClipped,
-                    sprite.target
+                    sprite->BackgroundData,
+                    sprite->BackgroundClipped,
+                    sprite->target
                 );
             }
 
-            // Compute frame source rect (horizontal sprite sheet)
             Rect src;
-            src.pos.x = animation->currentFrame * sprite.frameW;
+            src.pos.x = animation->currentFrame * sprite->frameW;
             src.pos.y = 0;
-            src.w = sprite.frameW;
-            src.h = sprite.frameH;
+            src.w = sprite->frameW;
+            src.h = sprite->frameH;
 
-            // Draw the frame
             drawSpriteSubRect(
-                sprite.AnimationFrames,
+                sprite->AnimationFrames,
                 src,
-                sprite.target
+                sprite->target
             );
         }
-    }
-    else if (animation->type == AnimationType::MOVE_ANIMATION) {
 
-        MoveAnimationData &move = animation->data.moveAnimation;
-        
-        // Accumulate time
+        return;
+    }
+
+    // =========================
+    // MOVE ANIMATION
+    // =========================
+    if (auto *move = std::get_if<MoveAnimationData>(&animation->data))
+    {
         animation->accumulatedTime += timeDelta;
-        
-        // Calculate progress
-        float progress = (float)animation->accumulatedTime / move.duration;
-        
-        if (progress >= 1.0f) {
-            // Finished
-            move.current = move.end;
-            animation->finished = true;
-            if (animation->onComplete) animation->onComplete(animation->userData);
-        } else {
-            // Interpolate position
-            move.current.x = move.start.x + (move.end.x - move.start.x) * progress;
-            move.current.y = move.start.y + (move.end.y - move.start.y) * progress;
-        }
-        
-        // Draw the sprite
-        drawSprite(move.sprite, move.current.x, move.current.y);
-    }
 
+        float progress = (float)animation->accumulatedTime / move->duration;
+
+        if (progress >= 1.0f)
+        {
+            move->current = move->end;
+            animation->finished = true;
+
+            if (animation->onComplete)
+                animation->onComplete(animation->userData);
+        }
+        else
+        {
+            move->current.x = move->start.x + (move->end.x - move->start.x) * progress;
+            move->current.y = move->start.y + (move->end.y - move->start.y) * progress;
+        }
+
+        drawSprite(move->sprite, move->current.x, move->current.y);
+        return;
+    }
 }
 
 void ICQEngine::updateAnimations(uint32_t timeDelta)

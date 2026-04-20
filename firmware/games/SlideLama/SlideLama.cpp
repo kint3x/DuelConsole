@@ -102,7 +102,7 @@ void SlideLama::drawCurrSlideStone(uint32_t delta)
     }
 
     if(currentBlockSlot.side == SlideBlockSlotSide::TOP) {
-        pos.x = currentBlockSlot.index*35 + LEFT_TOP_GRID_START_POS.x;
+        pos.x = currentBlockSlot.index*35 + LEFT_TOP_GRID_START_POS.x +floatOffset;
         pos.y = 2;
     }
     else if(currentBlockSlot.side == SlideBlockSlotSide::LEFT) {
@@ -233,13 +233,15 @@ void SlideLama::slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot)
         std::vector<animation_t> parallel_animations;
         for(uint16_t i=0; i<set.count; i++) {
             if(set.direction == ResolveDirection::HORIZONTAL) {
-                BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
-                BlockBreakAnim.data.spriteAnimation.target=grid.gridIdxToFramePos(set.tilePos.x+i,set.tilePos.y);
+                auto& sprite = std::get<SpriteAnimationData>(BlockBreakAnim.data);
+                sprite.BackgroundData = getBlockSprite(set.type);
+                sprite.target = grid.gridIdxToFramePos(set.tilePos.x + i, set.tilePos.y);
                 parallel_animations.push_back(BlockBreakAnim);
             }
             else {
-                BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
-                BlockBreakAnim.data.spriteAnimation.target=grid.gridIdxToFramePos(set.tilePos.x,set.tilePos.y+i);
+               auto& sprite = std::get<SpriteAnimationData>(BlockBreakAnim.data);
+                sprite.BackgroundData = getBlockSprite(set.type);
+                sprite.target = grid.gridIdxToFramePos(set.tilePos.x, set.tilePos.y + i);
                 parallel_animations.push_back(BlockBreakAnim);
             }
         }
