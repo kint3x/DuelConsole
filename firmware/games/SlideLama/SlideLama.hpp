@@ -18,7 +18,7 @@ public:
 
 private:
     void drawBackground();
-    void drawGrid();
+    void drawLogicGrid();
     void drawCurrSlideStone();
     void moveCurrSlideStone(const Input *input);
     void slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot);

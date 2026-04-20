@@ -74,8 +74,8 @@ void MainMenu::moveSelection(int direction) {
     
 
     Rect r = {
-        .pos = {menuStack.top()->start_position.x, 
-            menuStack.top()->start_position.y + menuStack.top()->selectedIndex * font_size_to_px[menuStack.top()->fontSize]},
+        .pos = {static_cast<uint16_t>(menuStack.top()->start_position.x), 
+           static_cast<uint16_t> (menuStack.top()->start_position.y + menuStack.top()->selectedIndex * font_size_to_px[menuStack.top()->fontSize])},
         .w = 250, // Assuming full width for highlight
         .h = font_size_to_px[menuStack.top()->fontSize]
     };

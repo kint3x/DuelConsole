@@ -47,9 +47,7 @@ void SlideLama::init() {
     grid.putExact({4,0}, SlideLamaBlockType::CHERRY);
 
     currentBlockSlot = {SlideBlockSlotSide::RIGHT, SlideLamaBlockType::SEVEN, 4};
-
     grid.resolveGravity();
-    drawGrid();
     
   
 }
@@ -74,11 +72,12 @@ void SlideLama::update(const Input *input, uint64_t globtime) {
             std::cout << "Pressed X" << std::endl; 
             timeoutWaitUntil = globtime + 200; // 200 ms timeout
             slideBlock(currentBlockSlot.type, &currentBlockSlot);
-            drawGrid();
         }
     }
     
-  
+    
+
+    drawLogicGrid(); //DrawAlwaysLogicState
 }
 
 void SlideLama::drawCurrSlideStone()
@@ -119,9 +118,9 @@ void SlideLama::drawBackground()
 }
 
 
-void SlideLama::drawGrid(){
+void SlideLama::drawLogicGrid(){
     
-    Rect r = {{LEFT_TOP_GRID_START_POS.x-5, LEFT_TOP_GRID_START_POS.y-5}, 5*35+10, 5*40+10};
+    Rect r = {{static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x-5), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y-5)}, 5*35+10, 5*40+10};
     m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,r);
 
     for(uint16_t y=0; y < SLIDELAMA_GRIDSIZE; y++) {
@@ -210,13 +209,15 @@ void SlideLama::slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot)
 
     uint16_t move_score = 0;
     uint16_t combo_multiplier = 1;
+    (void) move_score;
+    (void) combo_multiplier;
     
     while(grid.findSetToResolve(set))
     {
 
         grid.resolveSet(set);
         grid.resolveGravity();
-        drawGrid();
+        drawLogicGrid();
     }
 
 }

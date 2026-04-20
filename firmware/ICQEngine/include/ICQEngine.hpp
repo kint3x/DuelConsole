@@ -23,6 +23,8 @@ class ICQEngine
     void drawText(const char *text, FONT_SIZE SIZE, FONT_TYPE TYPE, uint16_t color, position_t pos, int8_t spacing);
     void drawRect(Rect r, uint16_t color, RECT_FILL_MODE mode, uint8_t thickness);
     void drawSpriteClipped(framebuffer_t *data, uint16_t x, uint16_t y,const Rect &clip);
+    void drawAnimationStep(animation_t *animation, uint32_t timeDelta);
+    void drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, position_t dst);
 };
 
 #endif //ICQ_ENGINE_HPP

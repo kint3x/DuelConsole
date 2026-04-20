@@ -5,7 +5,7 @@
 
 #include <generated/resources.hpp>
 #include <iostream>
-
+#include <chrono>
 
 int main() {
     SDLPlatform platform;
@@ -20,7 +20,6 @@ int main() {
 
     bool running = true;
 
-    
     while (running) {
         Input input = platform.pollInput();
 

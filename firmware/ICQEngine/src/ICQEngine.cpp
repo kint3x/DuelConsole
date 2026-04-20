@@ -57,7 +57,9 @@ void ICQEngine::drawSprite(framebuffer_t *data, uint16_t x, uint16_t y)
     }
 }
 
-
+/*
+* Draws in position x,y sprite of same size as screen but only in given Rect area
+*/
 void ICQEngine::drawSpriteClipped(framebuffer_t *data,
                                  uint16_t x, uint16_t y,
                                  const Rect &clip)
@@ -219,3 +221,100 @@ void ICQEngine::drawRect(Rect r, uint16_t color, RECT_FILL_MODE mode, uint8_t th
     }
 
 }
+
+
+/* Draws sub rectangle from sprite to a given dst in framebuffer */
+void ICQEngine::drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, position_t dst)
+{
+    for (uint16_t sy = 0; sy < srcRect.h; sy++)
+    {
+        uint16_t dy = dst.y + sy;
+        if (dy >= curr_frame.height) break;
+
+        for (uint16_t sx = 0; sx < srcRect.w; sx++)
+        {
+            uint16_t dx = dst.x + sx;
+            if (dx >= curr_frame.width) break;
+
+            uint16_t pixel =
+                src->pixels[
+                    (srcRect.pos.y + sy) * src->width +
+                    (srcRect.pos.x + sx)
+                ];
+
+            if (pixel != TRANSPARENT_COLOR)
+            {
+                curr_frame.pixels[dy * curr_frame.width + dx] = pixel;
+            }
+        }
+    }
+}
+
+
+void ICQEngine::drawAnimationStep(animation_t *animation, uint32_t timeDelta)
+{
+    if (animation == nullptr || animation->finished)
+        return;
+
+    if (animation->type != AnimationType::SPRITE_ANIMATION)
+        return;
+
+    SpriteAnimationData &sprite = animation->data.spriteAnimation;
+
+    if (!sprite.AnimationFrames || !sprite.frameDurations || sprite.Framecnt == 0)
+        return;
+
+    // Accumulate time
+    animation->accumulatedTime += timeDelta;
+
+    // Check current frame duration
+    uint16_t frameTime = sprite.frameDurations[animation->currentFrame];
+
+    // Not enough time → do nothing (no redraw)
+    if (animation->accumulatedTime < frameTime)
+        return;
+
+    // Advance frame
+    animation->accumulatedTime -= frameTime;
+    animation->currentFrame++;
+
+    // End of animation
+    if (animation->currentFrame >= sprite.Framecnt)
+    {
+        animation->currentFrame = sprite.Framecnt - 1;
+        animation->finished = true;
+    }
+
+    // Restore background if present
+    if (sprite.BackgroundData)
+    {
+        drawSpriteSubRect(
+            sprite.BackgroundData,
+            sprite.BackgroundClipped,
+            sprite.target
+        );
+    }
+
+    // Compute frame source rect (horizontal sprite sheet)
+    Rect src;
+    src.pos.x = animation->currentFrame * sprite.frameW;
+    src.pos.y = 0;
+    src.w = sprite.frameW;
+    src.h = sprite.frameH;
+
+    // Draw the frame
+    drawSpriteSubRect(
+        sprite.AnimationFrames,
+        src,
+        sprite.target
+    );
+}
+
+
+void animation_t::resetAnimation()
+{
+    currentFrame = 0;
+    accumulatedTime = 0;
+    finished = false;
+}
+

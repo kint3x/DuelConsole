@@ -45,4 +45,31 @@ enum class GameRequest {
     EXIT
 };
 
+enum class AnimationType
+{
+    SPRITE_ANIMATION
+};
+
+struct SpriteAnimationData{
+    framebuffer_t *AnimationFrames; //for animation
+    framebuffer_t *BackgroundData; //for background
+    uint16_t *frameDurations;
+    int Framecnt; //for animationframes
+    uint16_t frameW,frameH;
+    position_t target;
+    Rect BackgroundClipped;
+};
+union AnimationData{
+    SpriteAnimationData spriteAnimation;
+};
+struct animation_t{
+    AnimationType type;
+    AnimationData data;
+    
+    uint16_t currentFrame;    
+    uint32_t accumulatedTime;
+    bool finished;
+    void resetAnimation();
+};
+
 #endif //ICQ_TYPES_HPP
