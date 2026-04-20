@@ -26,6 +26,7 @@ class ICQEngine
     void drawAnimationStep(animation_t *animation, uint32_t timeDelta);
     void drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, position_t dst);
 
+    
     void updateAnimations(uint32_t timeDelta);
 
     std::queue<std::vector<animation_t>> animations;

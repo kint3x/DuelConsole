@@ -1,7 +1,10 @@
 #pragma once
 #include <ICQEngine/include/ICQTypes.hpp>
+#include <ICQEngine/include/ICQEngine.hpp>
 
 #define SLIDELAMA_GRIDSIZE 5
+
+const position_t LEFT_TOP_GRID_START_POS = {152,45}; // starting position left corner of 0,0
 
 enum class SlideLamaBlockType {
     EMPTY,
@@ -42,13 +45,14 @@ struct resolvedSet {
 
 class SlideLamaGrid {
 public:
-    SlideLamaGrid();
+    SlideLamaGrid(ICQEngine *m_engine);
 
     SlideLamaBlockType cells[SLIDELAMA_GRIDSIZE * SLIDELAMA_GRIDSIZE];  // or enum Tile
 
     SlideLamaBlockType* at(position_t pos);
 
     void putExact(position_t pos, SlideLamaBlockType type);
+    position_t gridIdxToFramePos(uint16_t x,uint16_t y);
 
     void slideFromRight(SlideLamaBlockType block, int row);
     void slideFromLeft(SlideLamaBlockType block, int row);
@@ -62,4 +66,6 @@ public:
 
     void resolveGravity();
     uint16_t resolveMatches();
+
+    ICQEngine *m_engine;
 };

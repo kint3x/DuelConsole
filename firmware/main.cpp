@@ -7,6 +7,7 @@
 #include <iostream>
 #include <chrono>
 
+
 int main() {
     SDLPlatform platform;
 
@@ -20,6 +21,8 @@ int main() {
 
     bool running = true;
     uint64_t lastTime = platform.time();
+
+
     while (running) {
         Input input = platform.pollInput();
 

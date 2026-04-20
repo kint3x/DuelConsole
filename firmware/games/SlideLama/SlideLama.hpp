@@ -30,5 +30,5 @@ private:
     std::queue<SlideLamaBlockType> nextBlocks;
 
 };
-
+framebuffer_t *getBlockSprite(SlideLamaBlockType type);
 extern animation_t BlockBreakAnim;

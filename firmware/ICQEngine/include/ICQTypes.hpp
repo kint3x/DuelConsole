@@ -47,7 +47,8 @@ enum class GameRequest {
 
 enum class AnimationType
 {
-    SPRITE_ANIMATION
+    SPRITE_ANIMATION,
+    MOVE_ANIMATION
 };
 
 struct SpriteAnimationData{
@@ -58,9 +59,21 @@ struct SpriteAnimationData{
     uint16_t frameW,frameH;
     position_t target;
     Rect BackgroundClipped;
+    
 };
+struct MoveAnimationData {
+    position_t start;        // Starting position
+    position_t end;          // Target position
+    position_t current;      // Current interpolated position
+    uint32_t duration;       // Total duration in ms
+    framebuffer_t *sprite;   // The sprite to move
+    framebuffer_t* topOverlay = nullptr;
+    framebuffer_t* bottomUnderlay = nullptr;
+};
+
 union AnimationData{
     SpriteAnimationData spriteAnimation;
+    MoveAnimationData moveAnimation;
 };
 struct animation_t{
     AnimationType type;
@@ -69,6 +82,9 @@ struct animation_t{
     uint16_t currentFrame;    
     uint32_t accumulatedTime;
     bool finished;
+    void (*onComplete)(void* userData);
+    void* userData;
+    
     void resetAnimation();
 };
 

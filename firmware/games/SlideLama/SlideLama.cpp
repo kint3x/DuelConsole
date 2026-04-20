@@ -5,7 +5,6 @@
 #include <iostream>
 
 
-const position_t LEFT_TOP_GRID_START_POS = {152,45}; // starting position left corner of 0,0
 
 framebuffer_t *getBlockSprite(SlideLamaBlockType type) {
     switch(type) {
@@ -31,7 +30,7 @@ framebuffer_t *getBlockSprite(SlideLamaBlockType type) {
 
 SlideLama::~SlideLama() = default;
 
-SlideLama::SlideLama(ICQEngine *engine) : IGame(engine) {
+SlideLama::SlideLama(ICQEngine *engine) : IGame(engine),grid(engine),timeoutWaitUntil(0) {
     
     
 }
@@ -50,6 +49,7 @@ void SlideLama::init() {
 
     currentBlockSlot = {SlideBlockSlotSide::RIGHT, SlideLamaBlockType::SEVEN, 4};
     grid.resolveGravity();
+
     timeoutWaitUntil = 0;
   
 }
@@ -59,7 +59,7 @@ void SlideLama::update(const Input *input, uint32_t delta) {
     (void) input;
     (void) delta;
     
-    
+
     if(timeoutWaitUntil>0) {
         timeoutWaitUntil=timeoutWaitUntil-delta;
     }
@@ -234,20 +234,19 @@ void SlideLama::slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot)
         for(uint16_t i=0; i<set.count; i++) {
             if(set.direction == ResolveDirection::HORIZONTAL) {
                 BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
-                BlockBreakAnim.data.spriteAnimation.target={static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x + (set.tilePos.x+i)*35), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y + set.tilePos.y*40)};
+                BlockBreakAnim.data.spriteAnimation.target=grid.gridIdxToFramePos(set.tilePos.x+i,set.tilePos.y);
                 parallel_animations.push_back(BlockBreakAnim);
             }
             else {
                 BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
-                BlockBreakAnim.data.spriteAnimation.target={static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x + set.tilePos.x*35), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y + (set.tilePos.y+i)*40)};
+                BlockBreakAnim.data.spriteAnimation.target=grid.gridIdxToFramePos(set.tilePos.x,set.tilePos.y+i);
                 parallel_animations.push_back(BlockBreakAnim);
             }
         }
-        m_engine->animations.push(parallel_animations);
+        m_engine->animations.push(std::move(parallel_animations));
         
         grid.resolveSet(set);
         grid.resolveGravity();
     }
 
-    drawLogicGrid();
 }

@@ -1,8 +1,9 @@
 #include <games/SlideLama/SlideLamaGrid.hpp>
+#include <games/SlideLama/SlideLama.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
 #include <generated/resources.hpp>
 
-SlideLamaGrid::SlideLamaGrid(){
+SlideLamaGrid::SlideLamaGrid(ICQEngine* engine) : m_engine(engine) {
     // Initialize the grid
     for(int i = 0; i < SLIDELAMA_GRIDSIZE * SLIDELAMA_GRIDSIZE; i++) {
         cells[i] = SlideLamaBlockType::EMPTY;
@@ -25,6 +26,12 @@ void SlideLamaGrid::putExact(position_t pos, SlideLamaBlockType type) {
 
 void SlideLamaGrid::resolveGravity()
 {
+    std::vector<animation_t> fall_animations;
+    animation_t anim;
+    anim.type = AnimationType::MOVE_ANIMATION;
+    anim.onComplete=nullptr;
+    anim.resetAnimation();
+
     for (int x = 0; x < SLIDELAMA_GRIDSIZE; ++x)
     {
         int writeY = SLIDELAMA_GRIDSIZE - 1; // bottom
@@ -42,11 +49,23 @@ void SlideLamaGrid::resolveGravity()
                 {
                     cells[writeIdx] = cells[readIdx];
                     cells[readIdx] = SlideLamaBlockType::EMPTY;
+                    anim.data.moveAnimation.current=gridIdxToFramePos(x,y);
+                    anim.data.moveAnimation.start = anim.data.moveAnimation.current;
+                    anim.data.moveAnimation.end=gridIdxToFramePos(x,writeY);
+                    anim.data.moveAnimation.duration=100*(writeY-y);
+                    anim.data.moveAnimation.sprite=getBlockSprite(cells[writeIdx]); 
+                    fall_animations.push_back(anim);
                 }
 
                 writeY--;
             }
         }
+
+
+        if (!fall_animations.empty()) {
+            m_engine->animations.push(std::move(fall_animations));
+        }
+
 
         // fill remaining top cells with EMPTY
         for (int y = writeY; y >= 0; --y)
@@ -54,6 +73,10 @@ void SlideLamaGrid::resolveGravity()
             cells[y * SLIDELAMA_GRIDSIZE + x] = SlideLamaBlockType::EMPTY;
         }
     }
+}
+
+position_t SlideLamaGrid::gridIdxToFramePos(uint16_t x,uint16_t y){
+    return {static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x + (x)*35), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y + y*40)};
 }
 
 void SlideLamaGrid::slideFromTop(SlideLamaBlockType block, int column)
@@ -89,51 +112,161 @@ void SlideLamaGrid::slideFromTop(SlideLamaBlockType block, int column)
 
 void SlideLamaGrid::slideFromRight(SlideLamaBlockType block, int row)
 {
-
+    std::vector<animation_t> slide_animations;
+    
     uint16_t rowStartIndex = row * SLIDELAMA_GRIDSIZE;
     SlideLamaBlockType temp1, temp2;
-    if(cells[rowStartIndex+SLIDELAMA_GRIDSIZE-1] != SlideLamaBlockType::EMPTY) {
-        //We shift all blocks to the left
-        temp1 = cells[rowStartIndex+SLIDELAMA_GRIDSIZE-1];
-        for(int x = SLIDELAMA_GRIDSIZE-2; x >= 0; x--) {
-            // Shift blocks to the left
-            temp2 = cells[rowStartIndex + x];
-            cells[rowStartIndex + x] = temp1;
-            if(temp2 == SlideLamaBlockType::EMPTY) {
-                break;
+    
+    // Check if the rightmost cell (where new block will go) is occupied
+    int rightmostIdx = rowStartIndex + SLIDELAMA_GRIDSIZE - 1;
+    
+    if(cells[rightmostIdx] != SlideLamaBlockType::EMPTY) {
+        // The block that will be shifted is the rightmost one
+        temp1 = cells[rightmostIdx];
+        
+        // Create animation for the rightmost block moving left
+        animation_t firstAnim={
+            .type=AnimationType::MOVE_ANIMATION,
+            .data = {
+                .moveAnimation= {
+                    .start =  gridIdxToFramePos(SLIDELAMA_GRIDSIZE - 1, row),
+                    .end = gridIdxToFramePos(SLIDELAMA_GRIDSIZE - 2, row),
+                    .current = gridIdxToFramePos(SLIDELAMA_GRIDSIZE - 1, row),
+                    .duration = 100,
+                    .sprite = getBlockSprite(temp1)
+                },
+            },
+            .accumulatedTime=0,
+            .finished = false,
+            .onComplete = nullptr,
+            .userData = nullptr,
+        };
+
+
+        slide_animations.push_back(firstAnim);
+        
+        // Now shift remaining blocks
+        for(int x = SLIDELAMA_GRIDSIZE - 2; x >= 0; x--) {
+            int idx = rowStartIndex + x;
+            
+            temp2 = cells[idx];
+            
+            if (temp2 != SlideLamaBlockType::EMPTY && x > 0)
+            {
+                // Create animation for this block moving left
+                animation_t anim ={
+                    .type=AnimationType::MOVE_ANIMATION,
+                    .data = {
+                        .moveAnimation= {
+                            .start =  gridIdxToFramePos(x, row),
+                            .end = gridIdxToFramePos(x - 1, row),
+                            .current = gridIdxToFramePos(x, row),
+                            .duration = 100,
+                            .sprite = getBlockSprite(temp2)
+                        },
+                    },
+                    .accumulatedTime=0,
+                    .finished = false,
+                    .onComplete = nullptr,
+                    .userData = nullptr,
+                };
+
+                slide_animations.push_back(anim);
             }
+            
+            cells[idx] = temp1;
             temp1 = temp2;
             
+            if(temp2 == SlideLamaBlockType::EMPTY)
+                break;
         }
     }
 
-    cells[rowStartIndex+SLIDELAMA_GRIDSIZE-1] = block; // Insert new block at the leftmost position
-
+    // Insert new block at rightmost position
+    cells[rightmostIdx] = block;
+    
+    if (!slide_animations.empty()) {
+        m_engine->animations.push(std::move(slide_animations));
+    }
 }
 
 void SlideLamaGrid::slideFromLeft(SlideLamaBlockType block, int row)
 {
-
-    // Left is not empty, we need to shift everything to the right
+    std::vector<animation_t> slide_animations;
+    
     uint16_t rowStartIndex = row * SLIDELAMA_GRIDSIZE;
     SlideLamaBlockType temp1, temp2;
-    if(cells[rowStartIndex] != SlideLamaBlockType::EMPTY) {
-        //We shift all blocks to the right
-        temp1 = cells[rowStartIndex];
+    
+    // Check if the leftmost cell (where new block will go) is occupied
+    int leftmostIdx = rowStartIndex;
+    
+    if(cells[leftmostIdx] != SlideLamaBlockType::EMPTY) {
+        // The block that will be shifted is the leftmost one
+        temp1 = cells[leftmostIdx];
+        
+        // Create animation for the leftmost block moving right
+        animation_t firstAnim={
+            .type=AnimationType::MOVE_ANIMATION,
+            .data = {
+                .moveAnimation= {
+                    .start = gridIdxToFramePos(0, row),
+                    .end = gridIdxToFramePos(1, row),
+                    .current = gridIdxToFramePos(0, row),
+                    .duration = 100,
+                    .sprite = getBlockSprite(temp1)
+                },
+            },
+            .accumulatedTime=0,
+            .finished = false,
+            .onComplete = nullptr,
+            .userData = nullptr,
+        };
+
+        slide_animations.push_back(firstAnim);
+        
+        // Now shift remaining blocks to the right
         for(int x = 1; x < SLIDELAMA_GRIDSIZE; x++) {
-            // Shift blocks to the right
-            temp2 = cells[rowStartIndex + x];
-            cells[rowStartIndex + x] = temp1;
-            if(temp2 == SlideLamaBlockType::EMPTY) {
-                break;
+            int idx = rowStartIndex + x;
+            
+            temp2 = cells[idx];
+            
+            if (temp2 != SlideLamaBlockType::EMPTY && x < SLIDELAMA_GRIDSIZE - 1)
+            {
+                // Create animation for this block moving right
+                animation_t anim ={
+                    .type=AnimationType::MOVE_ANIMATION,
+                    .data = {
+                        .moveAnimation= {
+                            .start = gridIdxToFramePos(x, row),
+                            .end = gridIdxToFramePos(x + 1, row),
+                            .current = gridIdxToFramePos(x, row),
+                            .duration = 100,
+                            .sprite = getBlockSprite(temp2)
+                        },
+                    },
+                    .accumulatedTime=0,
+                    .finished = false,
+                    .onComplete = nullptr,
+                    .userData = nullptr,
+                };
+
+                slide_animations.push_back(anim);
             }
+            
+            cells[idx] = temp1;
             temp1 = temp2;
             
+            if(temp2 == SlideLamaBlockType::EMPTY)
+                break;
         }
     }
 
-    cells[rowStartIndex] = block; // Insert new block at the leftmost position
-
+    // Insert new block at leftmost position
+    cells[leftmostIdx] = block;
+    
+    if (!slide_animations.empty()) {
+        m_engine->animations.push(std::move(slide_animations));
+    }
 }
 
 /*

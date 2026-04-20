@@ -21,5 +21,7 @@ animation_t BlockBreakAnim = {
     },
     .currentFrame = 0,
     .accumulatedTime = 0,
-    .finished = false
+    .finished = false,
+    .onComplete = nullptr,
+    .userData = nullptr,
 };
