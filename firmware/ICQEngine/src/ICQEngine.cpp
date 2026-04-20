@@ -1,5 +1,5 @@
 #include <ICQEngine/include/ICQEngine.hpp>
-
+#include <iostream>
 ICQEngine::ICQEngine(uint16_t width, uint16_t height,IPlatform *p) : platform(p)
 {
     curr_frame.width = width;
@@ -250,66 +250,96 @@ void ICQEngine::drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, posit
     }
 }
 
-
 void ICQEngine::drawAnimationStep(animation_t *animation, uint32_t timeDelta)
 {
-    if (animation == nullptr || animation->finished)
+    if (animation == nullptr || animation->finished){
         return;
-
-    if (animation->type != AnimationType::SPRITE_ANIMATION)
+    }
+    if (animation->type != AnimationType::SPRITE_ANIMATION){
         return;
+    }
 
     SpriteAnimationData &sprite = animation->data.spriteAnimation;
 
     if (!sprite.AnimationFrames || !sprite.frameDurations || sprite.Framecnt == 0)
+    {
         return;
-
+    }
+    
     // Accumulate time
     animation->accumulatedTime += timeDelta;
 
-    // Check current frame duration
-    uint16_t frameTime = sprite.frameDurations[animation->currentFrame];
-
-    // Not enough time → do nothing (no redraw)
-    if (animation->accumulatedTime < frameTime)
-        return;
-
-    // Advance frame
-    animation->accumulatedTime -= frameTime;
-    animation->currentFrame++;
-
-    // End of animation
-    if (animation->currentFrame >= sprite.Framecnt)
+    // Keep advancing frames while we have enough accumulated time
+    while (animation->accumulatedTime >= sprite.frameDurations[animation->currentFrame] && !animation->finished)
     {
-        animation->currentFrame = sprite.Framecnt - 1;
-        animation->finished = true;
+        // Subtract current frame duration
+        animation->accumulatedTime -= sprite.frameDurations[animation->currentFrame];
+        
+        // Advance to next frame
+        animation->currentFrame++;
+        
+        // Check if animation is complete
+        if (animation->currentFrame >= sprite.Framecnt)
+        {
+            animation->currentFrame = sprite.Framecnt - 1;
+            animation->finished = true;
+            break;
+        }
     }
 
-    // Restore background if present
-    if (sprite.BackgroundData)
+    // Only draw if animation is not finished, or draw last frame
+    if (!animation->finished || animation->currentFrame < sprite.Framecnt)
     {
+        // Restore background if present
+        if (sprite.BackgroundData)
+        {
+            drawSpriteSubRect(
+                sprite.BackgroundData,
+                sprite.BackgroundClipped,
+                sprite.target
+            );
+        }
+
+        // Compute frame source rect (horizontal sprite sheet)
+        Rect src;
+        src.pos.x = animation->currentFrame * sprite.frameW;
+        src.pos.y = 0;
+        src.w = sprite.frameW;
+        src.h = sprite.frameH;
+
+        // Draw the frame
         drawSpriteSubRect(
-            sprite.BackgroundData,
-            sprite.BackgroundClipped,
+            sprite.AnimationFrames,
+            src,
             sprite.target
         );
     }
-
-    // Compute frame source rect (horizontal sprite sheet)
-    Rect src;
-    src.pos.x = animation->currentFrame * sprite.frameW;
-    src.pos.y = 0;
-    src.w = sprite.frameW;
-    src.h = sprite.frameH;
-
-    // Draw the frame
-    drawSpriteSubRect(
-        sprite.AnimationFrames,
-        src,
-        sprite.target
-    );
 }
 
+void ICQEngine::updateAnimations(uint32_t timeDelta)
+{   
+
+    if(animations.empty())
+        return;
+
+    auto &parallel_anim = animations.front();
+    
+    for (auto& anim : parallel_anim) {
+        drawAnimationStep(&anim, timeDelta);
+    }
+
+    // Remove finished ones
+    for (auto it = parallel_anim.begin(); it != parallel_anim.end(); ) {
+        if (it->finished) {
+            it = parallel_anim.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    if(parallel_anim.empty()){
+        animations.pop();
+    }   
+}
 
 void animation_t::resetAnimation()
 {

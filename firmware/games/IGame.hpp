@@ -12,7 +12,7 @@ public:
 
     // Game lifecycle
     virtual void init() {};
-    virtual void update(const Input *input, uint64_t globtime) = 0;
+    virtual void update(const Input *input, uint32_t delta) = 0;
     
     /* State management
     virtual bool isRunning() const = 0;

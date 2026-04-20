@@ -19,7 +19,7 @@ int main() {
     game->init();
 
     bool running = true;
-
+    uint64_t lastTime = platform.time();
     while (running) {
         Input input = platform.pollInput();
 
@@ -27,7 +27,11 @@ int main() {
             running = false;
         }
 
-        game->update(&input, platform.time()); 
+        uint64_t currentTime = platform.time();
+        uint32_t delta = (uint32_t)(currentTime - lastTime);
+        lastTime = currentTime;
+        game->update(&input, delta);
+        engine.updateAnimations(delta);
 
         engine.render();
     }

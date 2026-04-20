@@ -48,7 +48,7 @@ public:
     ~MainMenu() override;
 
     // IGame interface
-    void update(const Input *input, uint64_t globtime) override;
+    void update(const Input *input, uint32_t delta) override;
     void init() override;
 
 private:

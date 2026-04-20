@@ -4,7 +4,7 @@
 #include <ICQEngine/include/ICQTypes.hpp>
 #include <generated/fonts.hpp>
 #include <platform/IPlatform.hpp>
-
+#include <queue>
 
 
 class ICQEngine
@@ -25,6 +25,10 @@ class ICQEngine
     void drawSpriteClipped(framebuffer_t *data, uint16_t x, uint16_t y,const Rect &clip);
     void drawAnimationStep(animation_t *animation, uint32_t timeDelta);
     void drawSpriteSubRect(framebuffer_t *src, const Rect &srcRect, position_t dst);
+
+    void updateAnimations(uint32_t timeDelta);
+
+    std::queue<std::vector<animation_t>> animations;
 };
 
 #endif //ICQ_ENGINE_HPP

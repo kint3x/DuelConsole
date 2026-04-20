@@ -11,7 +11,7 @@ public:
     ~SlideLama() override;
 
     // IGame interface
-    void update(const Input *input, uint64_t globtime) override;
+    void update(const Input *input, uint32_t delta) override;
     void init() override;
 
 
@@ -19,14 +19,16 @@ public:
 private:
     void drawBackground();
     void drawLogicGrid();
-    void drawCurrSlideStone();
+    void drawCurrSlideStone(uint32_t delta);
     void moveCurrSlideStone(const Input *input);
     void slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot);
     bool isHosted = false;
 
     SlideLamaGrid grid;
     SlideBlockPosition currentBlockSlot;
-    uint64_t timeoutWaitUntil = 0;
+    int timeoutWaitUntil = 0;
     std::queue<SlideLamaBlockType> nextBlocks;
 
 };
+
+extern animation_t BlockBreakAnim;

@@ -40,61 +40,77 @@ SlideLama::SlideLama(ICQEngine *engine) : IGame(engine) {
 void SlideLama::init() {
     drawBackground();
     
-    grid.putExact({0,0}, SlideLamaBlockType::CHERRY);
-    grid.putExact({1,0}, SlideLamaBlockType::BANANA);
-    grid.putExact({2,0}, SlideLamaBlockType::BANANA);
-    grid.putExact({3,0}, SlideLamaBlockType::BANANA);
-    grid.putExact({4,0}, SlideLamaBlockType::CHERRY);
+    grid.putExact({0,4}, SlideLamaBlockType::CHERRY);
+    grid.putExact({0,3}, SlideLamaBlockType::SEVEN);
+    grid.putExact({0,2}, SlideLamaBlockType::SEVEN);
+    grid.putExact({0,1}, SlideLamaBlockType::CHERRY);
+    grid.putExact({1,4}, SlideLamaBlockType::CHERRY);
+    grid.putExact({1,2}, SlideLamaBlockType::BANANA);
+
 
     currentBlockSlot = {SlideBlockSlotSide::RIGHT, SlideLamaBlockType::SEVEN, 4};
     grid.resolveGravity();
-    
+    timeoutWaitUntil = 0;
   
 }
 
-void SlideLama::update(const Input *input, uint64_t globtime) {
+void SlideLama::update(const Input *input, uint32_t delta) {
     // Handle input and update game state
     (void) input;
-    (void) globtime;
+    (void) delta;
     
     
-    if(globtime < timeoutWaitUntil) {
-        //std::cout << "Input timeout, ignoring input. Time left: " << (timeoutWaitUntil - globtime) << " ms" << std::endl;
+    if(timeoutWaitUntil>0) {
+        timeoutWaitUntil=timeoutWaitUntil-delta;
     }
     else{
-        
         if(input->up || input->down || input->left || input->right) {
-            timeoutWaitUntil = globtime + 200; // 200 ms timeout
+            timeoutWaitUntil = 150; // 200 ms timeout
             moveCurrSlideStone(input);
-            drawCurrSlideStone();
         }
         if(input->x) {  
             std::cout << "Pressed X" << std::endl; 
-            timeoutWaitUntil = globtime + 200; // 200 ms timeout
+            timeoutWaitUntil = 150; // 200 ms timeout
             slideBlock(currentBlockSlot.type, &currentBlockSlot);
         }
     }
     
-    
+    drawCurrSlideStone(delta);
 
+    if(m_engine->animations.empty())
     drawLogicGrid(); //DrawAlwaysLogicState
 }
 
-void SlideLama::drawCurrSlideStone()
+void SlideLama::drawCurrSlideStone(uint32_t delta)
 {
     position_t pos;
     uint16_t skewAdj = 4;
+    
+    // Floating animation (left-right movement)
+    static uint32_t floatTime = 0;
+    static int8_t floatOffset = 0;
+    static int8_t floatDirection = 1;
+    
+    // Update floating animation
+    floatTime += delta;
+    if (floatTime > 100) {  // Move every 10ms
+        floatTime = 0;
+        floatOffset += floatDirection;
+        
+        if (floatOffset >= 3) floatDirection = -1;  // Move right 3 pixels
+        if (floatOffset <= -3) floatDirection = 1;  // Move left 3 pixels
+    }
 
     if(currentBlockSlot.side == SlideBlockSlotSide::TOP) {
         pos.x = currentBlockSlot.index*35 + LEFT_TOP_GRID_START_POS.x;
         pos.y = 2;
     }
     else if(currentBlockSlot.side == SlideBlockSlotSide::LEFT) {
-        pos.x = LEFT_TOP_GRID_START_POS.x - 60 - currentBlockSlot.index*skewAdj;
+        pos.x = LEFT_TOP_GRID_START_POS.x - 60 - currentBlockSlot.index*skewAdj + floatOffset;  // Add float offset
         pos.y = currentBlockSlot.index*41 + LEFT_TOP_GRID_START_POS.y-6;
     }
     else { // RIGHT
-        pos.x = 60+LEFT_TOP_GRID_START_POS.x + 4*35 + currentBlockSlot.index*skewAdj;
+        pos.x = 60+LEFT_TOP_GRID_START_POS.x + 4*35 + currentBlockSlot.index*skewAdj + floatOffset;  // Add float offset
         pos.y = currentBlockSlot.index*41 + LEFT_TOP_GRID_START_POS.y-5;
     }
     
@@ -104,7 +120,7 @@ void SlideLama::drawCurrSlideStone()
         m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
         clip = {{145,0},200,42};
         m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
-        clip = {{75,35},52,210};
+        clip = {{71,35},59,210};
         m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
         m_engine->drawSprite(sprite, pos.x, pos.y);
     }
@@ -214,10 +230,24 @@ void SlideLama::slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot)
     
     while(grid.findSetToResolve(set))
     {
-
+        std::vector<animation_t> parallel_animations;
+        for(uint16_t i=0; i<set.count; i++) {
+            if(set.direction == ResolveDirection::HORIZONTAL) {
+                BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
+                BlockBreakAnim.data.spriteAnimation.target={static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x + (set.tilePos.x+i)*35), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y + set.tilePos.y*40)};
+                parallel_animations.push_back(BlockBreakAnim);
+            }
+            else {
+                BlockBreakAnim.data.spriteAnimation.BackgroundData=getBlockSprite(set.type);
+                BlockBreakAnim.data.spriteAnimation.target={static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.x + set.tilePos.x*35), static_cast<uint16_t>(LEFT_TOP_GRID_START_POS.y + (set.tilePos.y+i)*40)};
+                parallel_animations.push_back(BlockBreakAnim);
+            }
+        }
+        m_engine->animations.push(parallel_animations);
+        
         grid.resolveSet(set);
         grid.resolveGravity();
-        drawLogicGrid();
     }
 
+    drawLogicGrid();
 }

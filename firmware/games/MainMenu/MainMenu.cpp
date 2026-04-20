@@ -22,16 +22,16 @@ void MainMenu::init() {
 
 
 
-void MainMenu::update(const Input *input, uint64_t globtime) {
+void MainMenu::update(const Input *input, uint32_t delta) {
     // Handle input and update menu state
     (void) input;
 
-    if(globtime < timeoutWaitUntil) {
-        std::cout << "Input timeout, ignoring input. Time left: " << (timeoutWaitUntil - globtime) << " ms" << std::endl;
+    if(delta < timeoutWaitUntil) {
+        std::cout << "Input timeout, ignoring input. Time left: " << (timeoutWaitUntil - delta) << " ms" << std::endl;
         return; // Still in timeout, ignore input
     }
     if(input->up || input->down){
-        timeoutWaitUntil = globtime + 200; // 200 ms timeout
+        timeoutWaitUntil = 200; // 200 ms timeout
     }
     //handle inputs
     if (input->up) {
