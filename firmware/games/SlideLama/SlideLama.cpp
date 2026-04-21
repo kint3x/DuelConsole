@@ -30,7 +30,7 @@ framebuffer_t *getBlockSprite(SlideLamaBlockType type) {
 
 SlideLama::~SlideLama() = default;
 
-SlideLama::SlideLama(ICQEngine *engine) : IGame(engine),grid(engine),timeoutWaitUntil(0) {
+SlideLama::SlideLama(ICQEngine *engine, IPlatform* plat) : IGame(engine,plat),grid(engine),timeoutWaitUntil(0) {
     
     
 }

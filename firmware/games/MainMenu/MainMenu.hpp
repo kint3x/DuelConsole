@@ -4,16 +4,19 @@
 #include <string>
 #include <stack>
 
+enum class MainMenuState{
+    MENU,
+    ADVERTISING_GAME,
+    DISCOVERING,
+};
+
 enum class MenuItemType {
     ACTION,        // triggers something (Start Game)
     SUBMENU,       // opens another menu
-    TOGGLE,        // on/off (sound, fullscreen)
-    VALUE_INT,     // integer value (volume 0–100)
-    VALUE_FLOAT,   // float value (gamma, sensitivity)
-    SELECT,        // choose from list (resolution, difficulty)
-    INPUT,         // text input (player name)
+    CHANGE_STATE,  //change state to defined
     BACK,          // go back (often better than EXIT)
-    SEPARATOR,     // visual only (no interaction)
+
+
 };
 
 struct Menu;
@@ -25,8 +28,6 @@ struct MenuItem {
     union {
         void (*action)();     // ACTION
         Menu* submenu;       // SUBMENU
-        bool* toggleValue;    // TOGGLE
-        int* intValue;        // VALUE_INT
     };
 };
 
@@ -44,22 +45,24 @@ struct Menu{
 class MainMenu : public IGame
 {
 public:
-    MainMenu(ICQEngine* engine);
+    MainMenu(ICQEngine* engine, IPlatform* plat);
     ~MainMenu() override;
 
     // IGame interface
     void update(const Input *input, uint32_t delta) override;
     void init() override;
 
+    MainMenuState menuState = MainMenuState::MENU;
 private:
     void moveSelection(int direction);
     void selectItem();
+    void handleMenuClick();
     void drawMenu(Menu *menu);
     void drawMenuItem(MenuItem *item, bool selected, position_t *position);
 
 
-    uint64_t timeoutWaitUntil = 0;
-    std::stack<Menu *> menuStack;
+    int timeoutWaitUntil = 0;
+    std::stack<Menu> menuStack;
 
 };
 

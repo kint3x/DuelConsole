@@ -1,15 +1,6 @@
 #pragma once
 #include <cstdint>
-
-struct Input {
-    bool up = false;
-    bool down = false;
-    bool left = false;
-    bool right = false;
-    bool x = false;
-    bool b = false;
-    bool quit = false;
-};
+#include <CommnTypes.hpp>
 
 class IPlatform {
 public:
@@ -24,4 +15,13 @@ public:
     virtual uint32_t getRandomNumber()=0;
 
     virtual uint64_t time() = 0;
+
+    // Network methods:
+    
+    // non blocking advertising game creation and returns id of device that will be handle for sending comm
+    virtual void startAdvertising(const GameInfo& game) = 0;
+    virtual void stopAdvertising() = 0;
+    virtual bool isAdvertising() const = 0;
+
+
 };

@@ -13,7 +13,7 @@ enum GAME_FSM{
 class SlideLama : public IGame
 {
 public:
-    SlideLama(ICQEngine* engine);
+    SlideLama(ICQEngine* engine, IPlatform *plat);
     ~SlideLama() override;
 
     // IGame interface

@@ -4,10 +4,11 @@
 #include <platform/IPlatform.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
 
+
 class IGame
 {
 public:
-    IGame(ICQEngine* engine) : m_engine(engine){};
+    IGame(ICQEngine* engine, IPlatform* plat) : m_engine(engine), platform(plat){};
     virtual ~IGame() = default;
 
     // Game lifecycle
@@ -20,5 +21,5 @@ public:
 
 protected:
     ICQEngine* m_engine;
-    
+    IPlatform* platform;
 };

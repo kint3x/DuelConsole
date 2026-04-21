@@ -65,3 +65,60 @@ uint32_t SDLPlatform::getRandomNumber()
     );
     return dist(rng);
 }
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+
+void SDLPlatform::broadcastLanGame(uint32_t gameId,
+                                   uint16_t wsPort)
+{
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+    int broadcastEnable = 1;
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST,
+               &broadcastEnable, sizeof(broadcastEnable));
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(7777); // discovery port
+    addr.sin_addr.s_addr = INADDR_BROADCAST;
+
+    LanBroadcastPacket pkt{};
+    pkt.magic[0] = 'I';
+    pkt.magic[1] = 'C';
+    pkt.magic[2] = 'Q';
+    pkt.magic[3] = 'G';
+
+    pkt.gameId = gameId;
+    pkt.wsPort = wsPort;
+
+
+    sendto(sock,
+           &pkt,
+           sizeof(pkt),
+           0,
+           (sockaddr*)&addr,
+           sizeof(addr));
+
+    close(sock);
+}
+
+void SDLPlatform::startAdvertising(const GameInfo& game)
+{
+    
+    broadcastLanGame((uint32_t) game.name,77);
+}
+
+void SDLPlatform::stopAdvertising()
+{
+   
+}
+
+bool SDLPlatform::isAdvertising() const
+{
+}
+
+

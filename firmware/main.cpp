@@ -15,8 +15,9 @@ int main() {
 
     Settings settings;
 
-    IGame* game = new SlideLama(&engine);
-
+    IGame* game = new SlideLama(&engine,&platform);
+    
+    //IGame* game = new MainMenu(&engine,&platform);
     game->init();
 
     bool running = true;
@@ -24,6 +25,7 @@ int main() {
 
 
     while (running) {
+
         Input input = platform.pollInput();
 
         if (input.quit) {

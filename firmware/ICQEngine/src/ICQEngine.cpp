@@ -27,6 +27,7 @@ void ICQEngine::clean()
 
 void ICQEngine::render()
 {
+    
     platform->present(curr_frame.pixels);
 }
 
