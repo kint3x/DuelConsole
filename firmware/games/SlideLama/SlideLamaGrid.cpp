@@ -17,6 +17,83 @@ SlideLamaBlockType* SlideLamaGrid::at(position_t pos) {
     return &cells[pos.y * SLIDELAMA_GRIDSIZE + pos.x];
 }
 
+void SlideLamaGrid::init(std::vector<SlideLamaBlockType> blocks){
+    for(int i = 0; i < SLIDELAMA_GRIDSIZE * SLIDELAMA_GRIDSIZE; i++) {
+        cells[i] = blocks[i];
+    }
+}
+
+SlideLamaBlockType SlideLamaGrid::pickRandomBlock()
+{
+    uint32_t total = 0;
+    for (int t = 1; t < static_cast<int>(SlideLamaBlockType::COUNT); ++t) {
+        total += blockSpanFreq[t];
+    }
+
+    uint32_t r = m_engine->getRand() % total;
+
+    for (int t = 1; t < static_cast<int>(SlideLamaBlockType::COUNT); ++t) {
+        if (r < blockSpanFreq[t]) {
+            return static_cast<SlideLamaBlockType>(t);
+        }
+        r -= blockSpanFreq[t];
+    }
+
+    return SlideLamaBlockType::EMPTY; // safety
+}
+
+
+void SlideLamaGrid::generateCells()
+{
+    const int size = SLIDELAMA_GRIDSIZE;
+
+    for (int y = 0; y < size; ++y) {
+        for (int x = 0; x < size; ++x) {
+
+            SlideLamaBlockType chosen = SlideLamaBlockType::EMPTY;
+
+            // Try a few times (will succeed fast)
+            for (int attempt = 0; attempt < 10; ++attempt) {
+                SlideLamaBlockType type = pickRandomBlock();
+                bool valid = true;
+
+                // Horizontal check
+                if (x >= 2) {
+                    auto a = cells[y * size + (x - 1)];
+                    auto b = cells[y * size + (x - 2)];
+                    if (a == type && b == type) {
+                        valid = false;
+                    }
+                }
+
+                // Vertical check
+                if (y >= 2) {
+                    auto a = cells[(y - 1) * size + x];
+                    auto b = cells[(y - 2) * size + x];
+                    if (a == type && b == type) {
+                        valid = false;
+                    }
+                }
+
+                if (valid) {
+                    chosen = type;
+                    break;
+                }
+            }
+
+            // Safety fallback (very unlikely)
+            if (chosen == SlideLamaBlockType::EMPTY) {
+                chosen = pickRandomBlock();
+            }
+
+            cells[y * size + x] = chosen;
+        }
+    }
+}
+
+
+
+
 void SlideLamaGrid::putExact(position_t pos, SlideLamaBlockType type) {
     if(pos.x >= SLIDELAMA_GRIDSIZE || pos.y >= SLIDELAMA_GRIDSIZE) {
         return; // Out of bounds
@@ -58,6 +135,7 @@ void SlideLamaGrid::resolveGravity()
                     move.end      = gridIdxToFramePos(x, writeY);
                     move.duration = 100 * (writeY - y);
                     move.sprite   = getBlockSprite(cells[writeIdx]);
+                    move.bottomUnderlay = &SlideaLamaBCG;
 
                     fall_animations.push_back(std::move(anim));
                 }
@@ -94,6 +172,30 @@ void SlideLamaGrid::slideFromTop(SlideLamaBlockType block, int column)
     // If top is not empty → shift everything down
     if (cells[colStartIndex] != SlideLamaBlockType::EMPTY)
     {
+        /*Breaking animation of las box*/
+        auto& sprite = std::get<SpriteAnimationData>(BlockBreakAnim.data);
+        sprite.BackgroundData = getBlockSprite(*at({column,4}));
+        sprite.target = gridIdxToFramePos(column,4);
+
+        //second animation
+        
+        position_t end_offgrid=gridIdxToFramePos(column,0);
+        end_offgrid.y = end_offgrid.y-40;
+        position_t start_offgrid = end_offgrid;
+        animation_t firstAnim(AnimationType::MOVE_ANIMATION, 
+                    MoveAnimationData{
+                        start_offgrid, 
+                        end_offgrid,
+                        start_offgrid,
+                        1000,
+                        getBlockSprite(block),
+                        nullptr,
+                        nullptr
+                    });
+
+        m_engine->animations.push({BlockBreakAnim,firstAnim});
+
+
         temp1 = cells[colStartIndex];
 
         for (int y = 1; y < SLIDELAMA_GRIDSIZE; ++y)
@@ -118,7 +220,31 @@ void SlideLamaGrid::slideFromTop(SlideLamaBlockType block, int column)
 void SlideLamaGrid::slideFromRight(SlideLamaBlockType block, int row)
 {
     std::vector<animation_t> slide_animations;
-    
+
+    position_t start_offgrid=gridIdxToFramePos(4, row);
+    position_t end_offgrid = gridIdxToFramePos(4, row);
+    start_offgrid.x = start_offgrid.x+70;
+    end_offgrid.x = end_offgrid.x + 35;
+
+    animation_t firstAnim(AnimationType::MOVE_ANIMATION, 
+                    MoveAnimationData{
+                        start_offgrid, 
+                        end_offgrid,
+                        start_offgrid,
+                        100,
+                        getBlockSprite(block),
+                        &SlideaLamaBCG_PolesOverlay,
+                        nullptr
+                    });
+    m_engine->animations.push({firstAnim});
+
+    auto& moveData = std::get<MoveAnimationData>(firstAnim.data);
+    moveData.start.x -= 35;
+    moveData.current.x -= 35;
+    moveData.end.x -= 35;
+
+    slide_animations.push_back(std::move(firstAnim));
+
     uint16_t rowStartIndex = row * SLIDELAMA_GRIDSIZE;
     SlideLamaBlockType temp1, temp2;
     
@@ -187,6 +313,30 @@ void SlideLamaGrid::slideFromLeft(SlideLamaBlockType block, int row)
 {
     std::vector<animation_t> slide_animations;
     
+    position_t start_offgrid=gridIdxToFramePos(0, row);
+    position_t end_offgrid = start_offgrid;
+    start_offgrid.x = start_offgrid.x-70;
+    end_offgrid.x = end_offgrid.x - 35;
+
+    animation_t firstAnim(AnimationType::MOVE_ANIMATION, 
+                    MoveAnimationData{
+                        start_offgrid, 
+                        end_offgrid,
+                        start_offgrid,
+                        100,
+                        getBlockSprite(block),
+                        &SlideaLamaBCG_PolesOverlay,
+                        nullptr
+                    });
+    m_engine->animations.push({firstAnim});
+
+    auto& moveData = std::get<MoveAnimationData>(firstAnim.data);
+    moveData.start.x += 35;
+    moveData.current.x += 35;
+    moveData.end.x += 35;
+
+    slide_animations.push_back(std::move(firstAnim));
+
     uint16_t rowStartIndex = row * SLIDELAMA_GRIDSIZE;
     SlideLamaBlockType temp1, temp2;
     

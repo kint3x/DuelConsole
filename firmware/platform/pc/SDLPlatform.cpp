@@ -57,3 +57,11 @@ Input SDLPlatform::pollInput() {
 
     return in;
 }
+
+uint32_t SDLPlatform::getRandomNumber()
+{
+    std::uniform_int_distribution<uint32_t> dist(
+        0, std::numeric_limits<uint32_t>::max()
+    );
+    return dist(rng);
+}

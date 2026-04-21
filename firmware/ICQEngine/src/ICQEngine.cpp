@@ -2,12 +2,14 @@
 #include <iostream>
 #include <variant>
 
+
 ICQEngine::ICQEngine(uint16_t width, uint16_t height,IPlatform *p) : platform(p)
 {
     curr_frame.width = width;
     curr_frame.height = height;
     curr_frame.pixels = new uint16_t[width * height];
     platform->init(width,height);
+
 }
 
 ICQEngine::~ICQEngine()
@@ -310,12 +312,13 @@ void ICQEngine::drawAnimationStep(animation_t *animation, uint32_t timeDelta)
     // =========================
     // MOVE ANIMATION
     // =========================
+    position_t past_trail;
     if (auto *move = std::get_if<MoveAnimationData>(&animation->data))
     {
         animation->accumulatedTime += timeDelta;
 
         float progress = (float)animation->accumulatedTime / move->duration;
-
+        past_trail=move->current;
         if (progress >= 1.0f)
         {
             move->current = move->end;
@@ -329,8 +332,15 @@ void ICQEngine::drawAnimationStep(animation_t *animation, uint32_t timeDelta)
             move->current.x = move->start.x + (move->end.x - move->start.x) * progress;
             move->current.y = move->start.y + (move->end.y - move->start.y) * progress;
         }
-
-        drawSprite(move->sprite, move->current.x, move->current.y);
+        if(move->bottomUnderlay) //draw overlay
+        {     
+            drawSpriteClipped(move->bottomUnderlay,0,0,{past_trail,move->sprite->width,move->sprite->height});
+        }
+        drawSprite(move->sprite, move->current.x, move->current.y); //draw current progress
+        if(move->topOverlay) //draw overlay
+        {     
+            drawSpriteClipped(move->topOverlay,0,0,{move->current,move->sprite->width,move->sprite->height});
+        }
         return;
     }
 }

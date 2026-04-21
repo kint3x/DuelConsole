@@ -5,7 +5,7 @@
 #include <generated/fonts.hpp>
 #include <platform/IPlatform.hpp>
 #include <queue>
-
+#include <functional>
 
 class ICQEngine
 {
@@ -30,6 +30,11 @@ class ICQEngine
     void updateAnimations(uint32_t timeDelta);
 
     std::queue<std::vector<animation_t>> animations;
+    uint32_t getRand() {
+        return platform->getRandomNumber();
+    }
+
+
 };
 
 #endif //ICQ_ENGINE_HPP

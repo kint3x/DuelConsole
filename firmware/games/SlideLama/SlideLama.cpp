@@ -38,15 +38,8 @@ SlideLama::SlideLama(ICQEngine *engine) : IGame(engine),grid(engine),timeoutWait
 
 void SlideLama::init() {
     drawBackground();
-    
-    grid.putExact({0,4}, SlideLamaBlockType::CHERRY);
-    grid.putExact({0,3}, SlideLamaBlockType::SEVEN);
-    grid.putExact({0,2}, SlideLamaBlockType::SEVEN);
-    grid.putExact({0,1}, SlideLamaBlockType::CHERRY);
-    grid.putExact({1,4}, SlideLamaBlockType::CHERRY);
-    grid.putExact({1,2}, SlideLamaBlockType::BANANA);
 
-
+    grid.generateCells();
     currentBlockSlot = {SlideBlockSlotSide::RIGHT, SlideLamaBlockType::SEVEN, 4};
     grid.resolveGravity();
 
@@ -72,16 +65,39 @@ void SlideLama::update(const Input *input, uint32_t delta) {
             std::cout << "Pressed X" << std::endl; 
             timeoutWaitUntil = 150; // 200 ms timeout
             slideBlock(currentBlockSlot.type, &currentBlockSlot);
+            onTurn=!onTurn;
         }
     }
     
-    drawCurrSlideStone(delta);
 
-    if(m_engine->animations.empty())
-    drawLogicGrid(); //DrawAlwaysLogicState
+    if(m_engine->animations.empty()){
+        drawLogicGrid(); //DrawAlwaysLogicState
+        if(onTurn)
+        {
+            drawTurnSlideStone(delta, currentBlockSlot);
+
+        }
+        else{
+            drawClipSides();
+        }
+    }
+    else{
+        drawClipSides();
+    }
+    
 }
 
-void SlideLama::drawCurrSlideStone(uint32_t delta)
+void SlideLama::drawClipSides()
+{
+    Rect clip = {{340,40},70,210};
+    m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
+    clip = {{145,0},200,42};
+    m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
+    clip = {{71,35},70,210};
+    m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
+}
+
+void SlideLama::drawTurnSlideStone(uint32_t delta,SlideBlockPosition &slideBlock)
 {
     position_t pos;
     uint16_t skewAdj = 4;
@@ -101,27 +117,22 @@ void SlideLama::drawCurrSlideStone(uint32_t delta)
         if (floatOffset <= -3) floatDirection = 1;  // Move left 3 pixels
     }
 
-    if(currentBlockSlot.side == SlideBlockSlotSide::TOP) {
-        pos.x = currentBlockSlot.index*35 + LEFT_TOP_GRID_START_POS.x +floatOffset;
+    if(slideBlock.side == SlideBlockSlotSide::TOP) {
+        pos.x = slideBlock.index*35 + LEFT_TOP_GRID_START_POS.x +floatOffset;
         pos.y = 2;
     }
-    else if(currentBlockSlot.side == SlideBlockSlotSide::LEFT) {
-        pos.x = LEFT_TOP_GRID_START_POS.x - 60 - currentBlockSlot.index*skewAdj + floatOffset;  // Add float offset
-        pos.y = currentBlockSlot.index*41 + LEFT_TOP_GRID_START_POS.y-6;
+    else if(slideBlock.side == SlideBlockSlotSide::LEFT) {
+        pos.x = LEFT_TOP_GRID_START_POS.x - 60 - slideBlock.index*skewAdj + floatOffset;  // Add float offset
+        pos.y = slideBlock.index*41 + LEFT_TOP_GRID_START_POS.y-6;
     }
     else { // RIGHT
-        pos.x = 60+LEFT_TOP_GRID_START_POS.x + 4*35 + currentBlockSlot.index*skewAdj + floatOffset;  // Add float offset
-        pos.y = currentBlockSlot.index*41 + LEFT_TOP_GRID_START_POS.y-5;
+        pos.x = 60+LEFT_TOP_GRID_START_POS.x + 4*35 + slideBlock.index*skewAdj + floatOffset;  // Add float offset
+        pos.y = slideBlock.index*41 + LEFT_TOP_GRID_START_POS.y-5;
     }
     
-    framebuffer_t* sprite = getBlockSprite(currentBlockSlot.type);
+    framebuffer_t* sprite = getBlockSprite(slideBlock.type);
     if(sprite) {
-        Rect clip = {{340,40},70,210};
-        m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
-        clip = {{145,0},200,42};
-        m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
-        clip = {{71,35},59,210};
-        m_engine->drawSpriteClipped(&SlideaLamaBCG,0,0,clip);
+        drawClipSides();
         m_engine->drawSprite(sprite, pos.x, pos.y);
     }
 }

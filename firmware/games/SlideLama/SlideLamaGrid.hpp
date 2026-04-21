@@ -5,6 +5,16 @@
 #define SLIDELAMA_GRIDSIZE 5
 
 const position_t LEFT_TOP_GRID_START_POS = {152,45}; // starting position left corner of 0,0
+const uint32_t blockSpanFreq[] = {
+    0,//EMPTY
+    18,//BELL
+    16,//BANANA
+    15,//PLUM
+    14,//PEAR
+    14,//CHERRY
+    12,//BAR
+    11//SEVEN
+};
 
 enum class SlideLamaBlockType {
     EMPTY,
@@ -14,7 +24,8 @@ enum class SlideLamaBlockType {
     PEAR,
     CHERRY,
     BAR,
-    SEVEN
+    SEVEN,
+    COUNT
 };
 
 enum class SlideBlockSlotSide {
@@ -51,6 +62,9 @@ public:
 
     SlideLamaBlockType* at(position_t pos);
 
+    void init(std::vector<SlideLamaBlockType> blocks);
+    SlideLamaBlockType pickRandomBlock();
+    void generateCells();
     void putExact(position_t pos, SlideLamaBlockType type);
     position_t gridIdxToFramePos(uint16_t x,uint16_t y);
 

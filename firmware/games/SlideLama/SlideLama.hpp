@@ -3,6 +3,11 @@
 #include <queue>
 
 
+enum GAME_FSM{
+    ON_TURN,
+    WAITING_FOR_GRID_DATA,
+    WAITING_FOR_OPPONENT_TURN,
+};
 
 class SlideLama : public IGame
 {
@@ -15,19 +20,21 @@ public:
     void init() override;
 
 
-
 private:
     void drawBackground();
     void drawLogicGrid();
-    void drawCurrSlideStone(uint32_t delta);
+    void drawClipSides();
+    void drawTurnSlideStone(uint32_t delta,SlideBlockPosition &slideBlock);
     void moveCurrSlideStone(const Input *input);
     void slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot);
-    bool isHosted = false;
 
+    
     SlideLamaGrid grid;
     SlideBlockPosition currentBlockSlot;
-    int timeoutWaitUntil = 0;
     std::queue<SlideLamaBlockType> nextBlocks;
+    bool onTurn=true;
+    bool isHosted = false;
+    int timeoutWaitUntil = 0;
 
 };
 framebuffer_t *getBlockSprite(SlideLamaBlockType type);
