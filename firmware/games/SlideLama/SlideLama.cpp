@@ -35,12 +35,28 @@ SlideLama::SlideLama(ICQEngine *engine) : IGame(engine),grid(engine),timeoutWait
     
 }
 
+void SlideLama::drawBlockQueue(){
+    position_t block1={430,131};
+    position_t block2={445,78};
+    
+        
+    framebuffer_t* sprite =getBlockSprite(nextBlocks[1]);
+    m_engine->drawSprite(sprite, block1.x, block1.y);
+
+    sprite = getBlockSprite(nextBlocks[2]);
+    m_engine->drawSprite(sprite, block2.x, block2.y);
+
+}
 
 void SlideLama::init() {
     drawBackground();
 
     grid.generateCells();
-    currentBlockSlot = {SlideBlockSlotSide::RIGHT, SlideLamaBlockType::SEVEN, 4};
+    nextBlocks.push_back(grid.pickRandomBlock());
+    nextBlocks.push_back(grid.pickRandomBlock());
+    nextBlocks.push_back(grid.pickRandomBlock());
+    
+    currentBlockSlot = {SlideBlockSlotSide::RIGHT, nextBlocks.front(), 4};
     grid.resolveGravity();
 
     timeoutWaitUntil = 0;
@@ -75,7 +91,7 @@ void SlideLama::update(const Input *input, uint32_t delta) {
         if(onTurn)
         {
             drawTurnSlideStone(delta, currentBlockSlot);
-
+            drawBlockQueue();
         }
         else{
             drawClipSides();

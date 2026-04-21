@@ -1,13 +1,14 @@
 #include <games/IGame.hpp>
 #include <games/SlideLama/SlideLamaGrid.hpp>
-#include <queue>
+#include <deque>
 
 
 enum GAME_FSM{
     ON_TURN,
-    WAITING_FOR_GRID_DATA,
     WAITING_FOR_OPPONENT_TURN,
+    CLIENT_WAITING_FOR_GRID_DATA,
 };
+
 
 class SlideLama : public IGame
 {
@@ -24,6 +25,7 @@ private:
     void drawBackground();
     void drawLogicGrid();
     void drawClipSides();
+    void drawBlockQueue();
     void drawTurnSlideStone(uint32_t delta,SlideBlockPosition &slideBlock);
     void moveCurrSlideStone(const Input *input);
     void slideBlock(SlideLamaBlockType block, SlideBlockPosition* slot);
@@ -31,9 +33,9 @@ private:
     
     SlideLamaGrid grid;
     SlideBlockPosition currentBlockSlot;
-    std::queue<SlideLamaBlockType> nextBlocks;
+    std::deque<SlideLamaBlockType> nextBlocks;
     bool onTurn=true;
-    bool isHosted = false;
+    bool isHost = true;
     int timeoutWaitUntil = 0;
 
 };
