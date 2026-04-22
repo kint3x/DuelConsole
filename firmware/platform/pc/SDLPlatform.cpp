@@ -72,12 +72,12 @@ uint32_t SDLPlatform::getRandomNumber()
 #include <cstring>
 #include <iostream>
 #include <thread>
+#include <mutex>
 
-void SDLPlatform::broadcastLanGame(uint32_t gameId,
+void broadcastLanGame(uint32_t gameId,
                                    uint16_t wsPort)
 {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
-
     int broadcastEnable = 1;
     setsockopt(sock, SOL_SOCKET, SO_BROADCAST,
                &broadcastEnable, sizeof(broadcastEnable));
@@ -109,17 +109,116 @@ void SDLPlatform::broadcastLanGame(uint32_t gameId,
 
 void SDLPlatform::startAdvertising(GAME_NAME game)
 {
+    if(advertising.load()){
+        return;
+    }
+    advertising.store(true);
     
-    broadcastLanGame((uint32_t) game.name,77);
+    advertisingThread = std::thread([this,game]() {
+        while (advertising.load()) {
+
+            broadcastLanGame(
+                (uint32_t)game,
+                8899
+            );
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    });
+
 }
 
 void SDLPlatform::stopAdvertising()
 {
-   
+    advertising.store(false);
+    if(advertisingThread.joinable()) {
+        advertisingThread.join();
+    }
 }
 
 bool SDLPlatform::isAdvertising() const
 {
+    return advertising.load();
+}
+
+void SDLPlatform::startDiscovery()
+{
+    if (discovering.load()) return;
+
+    discovering.store(true);
+
+    discoveryThread = std::thread([this]() {
+
+        int sock = socket(AF_INET, SOCK_DGRAM, 0);
+        timeval tv{};
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+        sockaddr_in addr{};
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(7777);
+        addr.sin_addr.s_addr = INADDR_ANY;
+
+        bind(sock, (sockaddr*)&addr, sizeof(addr));
+
+        while (discovering.load()) {
+
+            sockaddr_in sender{};
+            socklen_t senderLen = sizeof(sender);
+
+            LanBroadcastPacket pkt{};
+
+            int len = recvfrom(sock,
+                               &pkt,
+                               sizeof(pkt),
+                               0,
+                               (sockaddr*)&sender,
+                               &senderLen);
+
+            if (len == sizeof(pkt)) {
+
+                // Validate magic
+                if (pkt.magic[0] == 'I' &&
+                    pkt.magic[1] == 'C' &&
+                    pkt.magic[2] == 'Q' &&
+                    pkt.magic[3] == 'G') {
+
+                    std::lock_guard<std::mutex> lock(discoveredMutex);
+                    discoveryDevice d = {
+                        .adress = sender.sin_addr.s_addr,
+                        .game= (GAME_NAME)pkt.gameId
+                    };
+                    discoveredDevices[d.adress]=(GAME_NAME)pkt.gameId;
+                }
+            }
+        }
+
+        close(sock);
+    });
 }
 
 
+void SDLPlatform::stopDiscovery()
+{
+    discovering.store(false);
+
+    if (discoveryThread.joinable()) {
+        discoveryThread.join();
+    }
+}
+
+bool SDLPlatform::isDiscovering() const
+{
+    return discovering.load();
+}
+
+void SDLPlatform::pollDiscovered(std::vector<device_id>& devicesOut)
+{
+    std::lock_guard<std::mutex> lock(discoveredMutex);
+
+    devicesOut.clear();
+
+    for (const auto& [id, _] : discoveredDevices) {
+        devicesOut.push_back(id);
+    }
+}

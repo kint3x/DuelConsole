@@ -1,6 +1,11 @@
 #pragma once
 #include <cstdint>
 #include <CommnTypes.hpp>
+#include <map>
+#include <vector>
+
+
+
 
 class IPlatform {
 public:
@@ -31,14 +36,16 @@ public:
     virtual void startAdvertising(GAME_NAME game) = 0;
     virtual void stopAdvertising() = 0;
     virtual bool isAdvertising() const = 0;
-    /*
+    
     //starts discovery process
     virtual void startDiscovery() = 0;
     virtual void stopDiscovery() = 0;
     virtual bool isDiscovering() const = 0;
+    
     //Polls discovered items in form of map of devices_id, device_id is abstraction id of device
-    virtual void pollDiscovered(std::map<device_id,GAME_NAME>&devicesOut);
-    */
+
+    
+    virtual void pollDiscovered(std::vector<device_id>& devicesOut) = 0;
 
 
 };

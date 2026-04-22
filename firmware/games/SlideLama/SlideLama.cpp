@@ -30,7 +30,7 @@ framebuffer_t *getBlockSprite(SlideLamaBlockType type) {
 
 SlideLama::~SlideLama() = default;
 
-SlideLama::SlideLama(ICQEngine *engine, IPlatform* plat) : IGame(engine,plat),grid(engine),timeoutWaitUntil(0) {
+SlideLama::SlideLama(ICQEngine *engine, IPlatform* plat, bool host) : IGame(engine,plat),grid(engine),timeoutWaitUntil(0),isHost(host) {
     
     
 }
@@ -51,16 +51,41 @@ void SlideLama::drawBlockQueue(){
 void SlideLama::init() {
     drawBackground();
 
-    grid.generateCells();
-    nextBlocks.push_back(grid.pickRandomBlock());
-    nextBlocks.push_back(grid.pickRandomBlock());
-    nextBlocks.push_back(grid.pickRandomBlock());
+    if(isHost){
+        grid.generateCells();
+        nextBlocks.push_back(grid.pickRandomBlock());
+        nextBlocks.push_back(grid.pickRandomBlock());
+        nextBlocks.push_back(grid.pickRandomBlock());
+        state = ON_TURN;
+    }
+    
     
     currentBlockSlot = {SlideBlockSlotSide::RIGHT, nextBlocks.front(), 4};
-    grid.resolveGravity();
-
-    timeoutWaitUntil = 0;
   
+}
+
+void SlideLama::getNextStone(){
+
+}
+
+void SlideLama::makeTurn(){
+
+    slideBlock(currentBlockSlot.type, &currentBlockSlot);
+    state=WAITING_FOR_OPPONENT_TURN;
+    turn_number++;
+    //TODO SEND TURN TO OPPONENT
+    nextBlocks.pop_front();
+
+    if(isHost){
+        nextBlocks.push_back(grid.pickRandomBlock());     
+    }
+    else{
+        
+        //get next block from host and push it back
+    }
+
+    currentBlockSlot.type=nextBlocks.front();
+    
 }
 
 void SlideLama::update(const Input *input, uint32_t delta) {
@@ -68,38 +93,41 @@ void SlideLama::update(const Input *input, uint32_t delta) {
     (void) input;
     (void) delta;
     
+    switch (state)
+    {
+        case ON_TURN:
+            //handle input
+            if(timeoutWaitUntil>0) {
+                timeoutWaitUntil=timeoutWaitUntil-delta;
+            }
+            else{
+                if(input->up || input->down || input->left || input->right) {
+                    timeoutWaitUntil = 150; // 200 ms timeout
+                    moveCurrSlideStone(input);
+                }
+                if(input->x) {  
+                    std::cout << "Pressed X" << std::endl; 
+                    timeoutWaitUntil = 150; // 200 ms timeout
+                    makeTurn();
+                }
+            }
+            break;
+        
 
-    if(timeoutWaitUntil>0) {
-        timeoutWaitUntil=timeoutWaitUntil-delta;
+        default:
+            break;
     }
-    else{
-        if(input->up || input->down || input->left || input->right) {
-            timeoutWaitUntil = 150; // 200 ms timeout
-            moveCurrSlideStone(input);
-        }
-        if(input->x) {  
-            std::cout << "Pressed X" << std::endl; 
-            timeoutWaitUntil = 150; // 200 ms timeout
-            slideBlock(currentBlockSlot.type, &currentBlockSlot);
-            onTurn=!onTurn;
-        }
-    }
-    
 
     if(m_engine->animations.empty()){
         drawLogicGrid(); //DrawAlwaysLogicState
-        if(onTurn)
-        {
-            drawTurnSlideStone(delta, currentBlockSlot);
-            drawBlockQueue();
-        }
-        else{
-            drawClipSides();
-        }
+        drawTurnSlideStone(delta, currentBlockSlot);
+        drawBlockQueue();
+   
     }
     else{
         drawClipSides();
     }
+
     
 }
 

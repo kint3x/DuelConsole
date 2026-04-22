@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+static uint16_t breakDurations[] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+
 MainMenu::~MainMenu() = default;
 
 
@@ -13,12 +15,76 @@ MainMenu::MainMenu(ICQEngine *engine,IPlatform *plat) : IGame(engine, plat) {
 }
 
 void MainMenu::init() {
-    
-    //menuStack.push(&mainMenu);
+
+    // --- MAIN MENU ---
+    mainMenu.items = {
+        {"Create Game", [this]() {
+            menuStack.push(&createGameMenu);
+        }},
+        {"Join Game", [this]() {
+            platform->startDiscovery();
+            discoveryTimer = 0;
+            menuStack.push(&joinGameMenu);
+        }},
+        {"Settings", [this]() {
+            // empty for now
+        }}
+    };
+    mainMenu.itemCount = mainMenu.items.size();
+
+    // --- CREATE GAME MENU ---
+    createGameMenu.items = {
+        {"SlideaLama", [this]() {
+
+            // Push animation
+            animation_t firstAnim(AnimationType::SPRITE_ANIMATION, 
+                    SpriteAnimationData{
+                        &AnimationLoader_8_150x150,
+                        nullptr,
+                        breakDurations,
+                        8,
+                        150,
+                        150,
+                        {220, 150},
+                    });
+
+            m_engine->animations.push({firstAnim});
+            m_engine->animations.push({firstAnim});
+            m_engine->animations.push({firstAnim});
+            m_engine->animations.push({firstAnim});
+            m_engine->animations.push({firstAnim});
+
+            // Start advertising
+            platform->startAdvertising(SLIDEALAMA);
+
+        }},
+        {"Back", [this]() {
+            if (platform->isAdvertising()) {
+                platform->stopAdvertising();
+            }
+            while(!m_engine->animations.empty())
+                m_engine->animations.pop();
+            menuStack.pop();
+        }}
+    };
+    createGameMenu.itemCount = createGameMenu.items.size();
+
+    // --- JOIN GAME MENU ---
+    joinGameMenu.items = {
+        {"Back", [this]() {
+            platform->stopDiscovery();
+            menuStack.pop();
+        }}
+    };
+    joinGameMenu.itemCount = joinGameMenu.items.size();
+
+    // Push main menu
+    menuStack.push(&mainMenu);
 }
 
 void MainMenu::update(const Input *input, uint32_t delta) {
     // Handle input and update menu state
+
 
     if(timeoutWaitUntil > 0) {
         timeoutWaitUntil = timeoutWaitUntil-delta;
@@ -39,20 +105,67 @@ void MainMenu::update(const Input *input, uint32_t delta) {
         }  
     }
 
+    // Handle Join Game dynamic list
+    if (menuStack.top() == &joinGameMenu) {
+
+        discoveryTimer += delta;
+
+        if (discoveryTimer >= 1000) {
+            discoveryTimer = 0;
+
+            discoveredDevices.clear();
+            platform->pollDiscovered(discoveredDevices);
+
+            // rebuild menu
+            joinGameMenu.items.clear();
+
+            for (auto &dev : discoveredDevices) {
+                joinGameMenu.items.push_back({
+                    "TEST",  // assuming device_id has name
+                    [this, dev]() {
+                        // TODO: connect later
+                    }
+                });
+            }
+
+            // Add Back
+            joinGameMenu.items.push_back({
+                "Back", [this]() {
+                    platform->stopDiscovery();
+                    menuStack.pop();
+                }
+            });
+
+            joinGameMenu.itemCount = joinGameMenu.items.size();
+            joinGameMenu.selectedIndex = 0;
+        }
+    }
+
     m_engine->drawSprite(&Menu_BCG,0,0);
-    
+    drawMenu(menuStack.top());
      
 }
 
-void MainMenu::handleMenuClick(){
+void MainMenu::handleMenuClick() {
+    Menu *menu = menuStack.top();
 
+    if (menu->selectedIndex < 0 || menu->selectedIndex >= menu->items.size())
+        return;
+
+    menu->items[menu->selectedIndex].onClick();
 }
 
 
 
 void MainMenu::drawMenu(Menu *menu) {
-    // Draw menu items
-    
+
+    position_t pos = {120, 100};
+
+    for (int i = 0; i < menu->items.size(); i++) {
+        bool selected = (i == menu->selectedIndex);
+        drawMenuItem(&menu->items[i], selected, &pos);
+        pos.y += 40;
+    }
 }
 
 void MainMenu::drawMenuItem(MenuItem *item, bool selected, position_t *position) {
@@ -68,8 +181,12 @@ void MainMenu::drawMenuItem(MenuItem *item, bool selected, position_t *position)
 }
 
 void MainMenu::moveSelection(int direction) {
-    // Move selection up or down
-    if(menuStack.top().selectedIndex + direction < 0) return;
-    if(menuStack.top().selectedIndex + direction >= menuStack.top().itemCount) return;
+    Menu *menu = menuStack.top();
 
+    int newIndex = menu->selectedIndex + direction;
+
+    if (newIndex < 0 || newIndex >= menu->itemCount)
+        return;
+
+    menu->selectedIndex = newIndex;
 }

@@ -19,27 +19,15 @@ enum class MenuItemType {
 
 };
 
-struct Menu;
-
 struct MenuItem {
     std::string text;
-    MenuItemType type;
-
-    union {
-        void (*action)();     // ACTION
-        Menu* submenu;       // SUBMENU
-    };
+    std::function<void()> onClick;
 };
 
-struct Menu{
-    std::string title;
-    MenuItem* items;
-    int itemCount;
-    int perPage = 5;
-    uint16_t selectedIndex = 0;
-    position_t start_position;
-    FONT_SIZE fontSize = FONT_SIZE_32;
-    FONT_TYPE fontType = FONT_SOURCECODEPRO;
+struct Menu {
+    std::vector<MenuItem> items;
+    int selectedIndex = 0;
+    int itemCount = 0;
 };
 
 class MainMenu : public IGame
@@ -62,9 +50,13 @@ private:
 
 
     int timeoutWaitUntil = 0;
-    std::stack<Menu> menuStack;
+    std::stack<Menu*> menuStack;
+
+    Menu mainMenu;
+    Menu createGameMenu;
+    Menu joinGameMenu;
+    std::vector<device_id> discoveredDevices;
+    uint32_t discoveryTimer = 0;
 
 };
 
-
-extern Menu mainMenu;

@@ -3,13 +3,16 @@
 #include <platform/IPlatform.hpp>
 
 #include <random>
+#include <thread>
+#include <atomic>
+
+#include <mutex>
 #include <CommnTypes.hpp>
 
-struct LanBroadcastPacket
+struct discoveryDevice
 {
-    char magic[4];        // "ICQG"
-    uint32_t gameId;
-    uint16_t wsPort;      // WebSocket server port
+    device_id adress;
+    GAME_NAME game;
 };
 
 
@@ -22,8 +25,15 @@ private:
     int width;
     int height;
     std::mt19937 rng;   // Mersenne Twister RNG
+    
+    std::thread advertisingThread;
+    std::atomic<bool> advertising{false};
+    
+    std::thread discoveryThread;
+    std::atomic<bool> discovering{false};
+    std::map<device_id, GAME_NAME> discoveredDevices;
+    std::mutex discoveredMutex;
 
-    bool advertising;
 public:
     bool init(int w, int h) override;
     Input pollInput() override;
@@ -32,8 +42,14 @@ public:
     uint32_t getRandomNumber() override;
 
     void startAdvertising(GAME_NAME game) override;
-    void stopAdvertising()override;
+    void stopAdvertising() override;
     bool isAdvertising() const override;
+
+    void startDiscovery() override;
+    void stopDiscovery() override;
+    bool isDiscovering() const override;
+
+    void pollDiscovered(std::vector<device_id>& devicesOut) override;
 
     
 };
