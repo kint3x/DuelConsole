@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 struct Input {
     bool up = false;
     bool down = false;
@@ -17,8 +19,12 @@ enum GAME_NAME{
     SLIDEALAMA
 };
 
-struct GameInfo
-{
-    GAME_NAME name;
-    device_id device_ID;
+enum GameMessageType{
+    STATE, //state can be overwritten by other state
+    EVENT //events must be stored in queue
+};
+struct GameMessage{
+    uint8_t type;
+    uint8_t gameID;
+    uint8_t bytes[100];
 };

@@ -17,11 +17,28 @@ public:
     virtual uint64_t time() = 0;
 
     // Network methods:
-    
+
+    /*
+    // Return true if there is new message for game and fills it to gameMessage
+    virtual bool pollForEventMessage(GameMessage& gameMessage) = 0; 
+    virtual bool pollForStateMessage(GameMessage& gameMessage) = 0; 
+
+    // Sends message to currently connected device
+    virtual bool sendMessage(device_id target,GameMessage& gameMessage) = 0;
+    */
+
     // non blocking advertising game creation and returns id of device that will be handle for sending comm
-    virtual void startAdvertising(const GameInfo& game) = 0;
+    virtual void startAdvertising(GAME_NAME game) = 0;
     virtual void stopAdvertising() = 0;
     virtual bool isAdvertising() const = 0;
+    /*
+    //starts discovery process
+    virtual void startDiscovery() = 0;
+    virtual void stopDiscovery() = 0;
+    virtual bool isDiscovering() const = 0;
+    //Polls discovered items in form of map of devices_id, device_id is abstraction id of device
+    virtual void pollDiscovered(std::map<device_id,GAME_NAME>&devicesOut);
+    */
 
 
 };

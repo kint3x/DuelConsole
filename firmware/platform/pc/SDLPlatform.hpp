@@ -13,7 +13,6 @@ struct LanBroadcastPacket
 };
 
 
-
 class SDLPlatform : public IPlatform {
 private:
     SDL_Window* window = nullptr;
@@ -32,9 +31,9 @@ public:
     uint64_t time() override;
     uint32_t getRandomNumber() override;
 
-    void startAdvertising(const GameInfo& game) override;
+    void startAdvertising(GAME_NAME game) override;
     void stopAdvertising()override;
     bool isAdvertising() const override;
 
-
+    
 };

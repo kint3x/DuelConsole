@@ -71,6 +71,7 @@ uint32_t SDLPlatform::getRandomNumber()
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 void SDLPlatform::broadcastLanGame(uint32_t gameId,
                                    uint16_t wsPort)
@@ -106,7 +107,7 @@ void SDLPlatform::broadcastLanGame(uint32_t gameId,
     close(sock);
 }
 
-void SDLPlatform::startAdvertising(const GameInfo& game)
+void SDLPlatform::startAdvertising(GAME_NAME game)
 {
     
     broadcastLanGame((uint32_t) game.name,77);
