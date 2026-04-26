@@ -3,18 +3,15 @@
 
 #include <ICQEngine/include/ICQTypes.hpp>
 #include <generated/fonts.hpp>
-#include <platform/IPlatform.hpp>
 #include <queue>
-#include <functional>
 
 class ICQEngine
 {
     private:
         framebuffer_t curr_frame;
-        IPlatform *platform;
     public:
 
-    ICQEngine(uint16_t width, uint16_t height,IPlatform *p);
+    ICQEngine(uint16_t width, uint16_t height);
 
     ~ICQEngine();
     void clean();
@@ -30,9 +27,6 @@ class ICQEngine
     void updateAnimations(uint32_t timeDelta);
 
     std::queue<std::vector<animation_t>> animations;
-    uint32_t getRand() {
-        return platform->getRandomNumber();
-    }
 
 
 };

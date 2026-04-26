@@ -1,14 +1,11 @@
 #include <ICQEngine/include/ICQEngine.hpp>
-#include <iostream>
-#include <variant>
 
 
-ICQEngine::ICQEngine(uint16_t width, uint16_t height,IPlatform *p) : platform(p)
+ICQEngine::ICQEngine(uint16_t width, uint16_t height)
 {
     curr_frame.width = width;
     curr_frame.height = height;
     curr_frame.pixels = new uint16_t[width * height];
-    platform->init(width,height);
 
 }
 
@@ -28,7 +25,7 @@ void ICQEngine::clean()
 void ICQEngine::render()
 {
     
-    platform->present(curr_frame.pixels);
+    //platform->present(curr_frame.pixels);
 }
 
 /*
