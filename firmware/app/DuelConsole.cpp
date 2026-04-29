@@ -2,9 +2,13 @@
 #include <app/menu/MainMenu.hpp>
 
 
-void DuelConsole::run(){
 
-    MainMenu menu(&engine);
+void DuelConsole::run(){
+    GameEntity currGame;
+    
+    MainMenu menu(&engine,&currGame);
+    
+
 
     Input i;    
     uint32_t delta;

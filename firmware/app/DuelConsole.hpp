@@ -1,6 +1,8 @@
 #pragma once
 #include <ICQEngine/include/ICQEngine.hpp>
 #include <app/CommonTypes.hpp>
+#include <app/IGame.hpp>
+
 struct PlatformAPI
 {
     void (*pollInput)(Input*);

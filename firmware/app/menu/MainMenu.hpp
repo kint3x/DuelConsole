@@ -1,17 +1,26 @@
 #pragma once
 #include <ICQEngine/include/ICQTypes.hpp>
 #include <ICQEngine/include/ICQEngine.hpp>
+#include <app/IGame.hpp>
 #include <app/CommonTypes.hpp>
+
+enum MenuRetCode{
+    MENU_OK,
+    MENU_START_GAME
+};
 
 class MainMenu
 {
-private:
-    ICQEngine* engine;
 public:
-    MainMenu(ICQEngine* engine);
+    MainMenu(ICQEngine* engine, GameEntity *e);
     ~MainMenu();
 
-    void update(Input *input, uint32_t delta);
-    void poll
+    MenuRetCode update(Input *input, uint32_t delta);
+    void drawState();
+
+
+private:
+    ICQEngine* engine;
+    GameEntity* game;
 };
 

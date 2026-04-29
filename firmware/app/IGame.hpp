@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <ICQEngine/include/ICQEngine.hpp>
+#include <app/CommonTypes.hpp>
 
 
 class IGame
@@ -17,4 +18,23 @@ public:
 
 protected:
     ICQEngine* m_engine;
+};
+
+typedef uint32_t Opponent_ID; 
+
+enum GameType{
+    SLIDEALAMA
+};
+
+enum GameMode{
+    SINGLE_PLAYER,
+    MULTI_PLAYER
+};
+
+
+struct GameEntity{
+    GameType type;
+    GameMode gm;
+    Opponent_ID opp_id;
+    IGame *game;
 };

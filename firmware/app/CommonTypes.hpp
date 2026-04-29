@@ -8,3 +8,4 @@ struct Input
     bool left;
     bool right;
 };
+
