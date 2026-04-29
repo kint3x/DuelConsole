@@ -1,10 +1,17 @@
 #include <app/DuelConsole.hpp>
-#include <ICQEngine/include/ICQEngine.hpp>
-#include <app/games/SlideaLama/SlideLama.hpp>
+#include <app/menu/MainMenu.hpp>
+
 
 void DuelConsole::run(){
 
+    MainMenu menu(&engine);
+
+    Input i;    
+    uint32_t delta;
+
     while (true){
+        device->pollInput(&i);
+        menu.update(&i,delta);
 
     }
 }
@@ -15,6 +22,13 @@ DuelConsole::DuelConsole(PlatformAPI *deviceAPI):device(deviceAPI),engine(480, 3
 {
 }
 
+
 DuelConsole::~DuelConsole()
 {
+}
+
+
+uint32_t DuelConsole::getRand()
+{
+    return 0;
 }

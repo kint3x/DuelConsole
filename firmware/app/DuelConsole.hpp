@@ -1,10 +1,9 @@
 #pragma once
-
 #include <ICQEngine/include/ICQEngine.hpp>
-
+#include <app/CommonTypes.hpp>
 struct PlatformAPI
 {
-
+    void (*pollInput)(Input*);
 };  
 
 
@@ -17,6 +16,7 @@ private:
 public:
     DuelConsole(PlatformAPI *deviceAPI);
     ~DuelConsole();
+    uint32_t getRand();
 
     void run();
 };
